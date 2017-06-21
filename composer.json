@@ -1,0 +1,11 @@
+{
+    "name": "cranberry/filesystem",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Ashur Cabrera",
+            "email": "hello@cabreramade.co"
+        }
+    ],
+    "require": {}
+}
