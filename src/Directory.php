@@ -7,6 +7,7 @@ namespace Cranberry\Filesystem;
 
 class Directory extends Node
 {
+    const ERROR_STRING_CREATE = 'Cannot create %s: %s.';
     const ERROR_STRING_GETCHILDREN = 'Cannot retrieve children of %s: %s.';
 
     /**
@@ -15,6 +16,12 @@ class Directory extends Node
     protected $directoryIterator;
 
     /**
+     * Attempt to create the directory specified by $this->pathname
+     *
+     * If $recursive is true, no exception will be thrown if the directory
+     *   already exists (i.e., match the command-line behavior of
+     *   `mkdir -p <dir>`)
+     *
      * @param   boolean    $recursive
      * @param   int        $mode
      * @param   resource   $context
@@ -22,6 +29,40 @@ class Directory extends Node
      */
     public function create( $recursive=false, $mode=0777, resource $context=null )
     {
+        if( $this->exists() )
+        {
+            if( $recursive )
+            {
+                return true;
+            }
+            else
+            {
+                $exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Directory exists' );
+                throw new \InvalidArgumentException( $exceptionMessage );
+            }
+        }
+        else
+        {
+            $parentDirectory = $this->getParent();
+
+            if( $parentDirectory->exists() )
+            {
+                if( !$parentDirectory->isWritable() )
+                {
+                    $exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Permission denied' );
+                    throw new \InvalidArgumentException( $exceptionMessage );
+                }
+            }
+            else
+            {
+                if( !$recursive )
+                {
+                    $exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Permission denied' );
+                    throw new \InvalidArgumentException( $exceptionMessage );
+                }
+            }
+        }
+
         if( $context == null )
         {
             $result = mkdir( $this->getPathname(), $mode, $recursive );

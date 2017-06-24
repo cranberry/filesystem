@@ -45,6 +45,104 @@ class DirectoryTest extends TestCase
         $this->assertTrue( file_exists( $pathname ) );
     }
 
+    /**
+     * @expectedException   InvalidArgumentException
+     */
+    public function testCreateExistingDirectoryNonRecursivelyThrowsException()
+    {
+        $pathname = self::$tempPathname . '/' . microtime( true );
+
+        $this->assertFalse( file_exists( $pathname ) );
+
+        $directory = new Directory( $pathname );
+        $recursive = false;
+
+        $directory->create( $recursive );
+        $directory->create( $recursive );
+    }
+
+    public function testCreateExistingDirectoryRecursivelyReturnsTrue()
+    {
+        $pathname = self::$tempPathname . '/' . microtime( true );
+
+        $this->assertFalse( file_exists( $pathname ) );
+
+        $directory = new Directory( $pathname );
+        $recursive = true;
+
+        $directory->create( $recursive );
+
+        $this->assertTrue( $directory->create( $recursive ) );
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     */
+    public function testCreateWithExistingUnwritableParentThrowsException()
+    {
+        $mockParent = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists','isWritable'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockParent
+            ->method( 'exists' )
+            ->willReturn( true );
+
+        $mockParent
+            ->method( 'isWritable' )
+            ->willReturn( false );
+
+        $mockDirectory = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists', 'getParent'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockDirectory
+            ->method( 'exists' )
+            ->willReturn( false );
+
+        $mockDirectory
+            ->method( 'getParent' )
+            ->willReturn( $mockParent );
+
+        $mockDirectory->create();
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     */
+    public function testCreateWithNonExistingParentUnrecursivelyThrowsException()
+    {
+        $mockParent = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockParent
+            ->method( 'exists' )
+            ->willReturn( false );
+
+        $mockDirectory = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists', 'getParent'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockDirectory
+            ->method( 'exists' )
+            ->willReturn( false );
+
+        $mockDirectory
+            ->method( 'getParent' )
+            ->willReturn( $mockParent );
+
+        $recursive = false;
+        $mockDirectory->create( $recursive );
+    }
     public function testDeleteRemovesDirectory()
     {
         $testParentPathname = self::$tempPathname . '/' . microtime( true );
