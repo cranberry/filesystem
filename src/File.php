@@ -26,7 +26,7 @@ class File extends Node
             }
             else
             {
-                $exceptionMessage = sprintf( 'Unable to create file %s: Parent does not exist: %s', $this->getBasename(), $this->getParent()->getPathname() );
+                $exceptionMessage = sprintf( 'Cannot create file %s: Parent does not exist: %s', $this->getBasename(), $this->getParent()->getPathname() );
                 throw new \InvalidArgumentException( $exceptionMessage );
             }
         }
