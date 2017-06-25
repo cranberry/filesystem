@@ -53,12 +53,13 @@ class File extends Node
     }
 
 	/**
-	 * @param    boolean    $use_include_path
-     * @param    resource   $context
-     * @param    int        $offset
-     * @param    int        $maxlen
+	 * @param   boolean    $use_include_path
+	 * @param   resource   $context
+	 * @param   int        $offset
+	 * @param   int        $maxlen
+	 * @return  string
 	 */
-	public function getContents( $use_include_path=false, $context=null, $offset=0, $maxlen=null )
+	public function getContents( $use_include_path=false, resource $context=null, $offset=0, $maxlen=null )
 	{
         if( !$this->exists() )
         {
