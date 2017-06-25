@@ -58,6 +58,13 @@ class NodeTest extends TestCase
         $this->assertTrue( $mockNode->exists() );
     }
 
+    public function testGetParentOfRootReturnsFalse()
+    {
+        $directory = new Directory( '/' );
+
+        $this->assertFalse( $directory->getParent() );
+    }
+
     public function testGetParentReturnsDirectoryObject()
 	{
         $pathname = self::$tempPathname . '/' . microtime( true );

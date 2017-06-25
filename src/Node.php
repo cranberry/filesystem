@@ -43,7 +43,15 @@ abstract class Node extends \SplFileInfo
 	 */
 	public function getParent()
 	{
-		return new Directory( dirname( $this->getPathname() ) );
+        $selfPathname = $this->getPathname();
+        $parentPathname = dirname( $selfPathname );
+
+        if( $parentPathname == $selfPathname )
+        {
+            return false;
+        }
+
+		return new Directory( $parentPathname );
 	}
 
     /**
