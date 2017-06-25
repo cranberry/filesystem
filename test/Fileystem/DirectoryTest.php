@@ -34,7 +34,7 @@ class DirectoryTest extends TestCase
 
     public function testCreateDirectory()
     {
-        $pathname = self::$tempPathname . '/bar';
+        $pathname = self::$tempPathname . '/bar-' . microtime( true );
 
         $this->assertFalse( file_exists( $pathname ) );
 
