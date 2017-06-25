@@ -82,6 +82,19 @@ class FileTest extends TestCase
         $this->assertFalse( file_exists( $testChildFilename ) );
     }
 
+    public function testGetContents()
+    {
+        $testFilename = self::$tempPathname . '/getContents-' . microtime( true );
+
+        $this->assertFalse( file_exists( $testFilename ) );
+
+        $file = new File( $testFilename );
+        $contents = microtime( true );
+        file_put_contents( $testFilename, $contents );
+
+        $this->assertEquals( (string)$contents, $file->getContents() );
+    }
+
 	/**
 	 * @expectedException  InvalidArgumentException
 	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
