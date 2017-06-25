@@ -25,7 +25,7 @@ class FileTest extends TestCase
 
     public function testCreateFile()
     {
-        $filename = self::$tempPathname . '/foo.txt';
+        $filename = self::$tempPathname . '/createFile-' . microtime( true );
 
         $this->assertFalse( file_exists( $filename ) );
 
@@ -41,7 +41,7 @@ class FileTest extends TestCase
      */
     public function testCreateChildOfNonExistentDirectoryThrowsException()
     {
-        $filename = self::$tempPathname . '/' . microtime( true ) . '/foo.txt';
+        $filename = self::$tempPathname . '/dir-' . microtime( true ) . '/foo.txt';
 
         $this->assertFalse( file_exists( dirname( $filename ) ) );
         $this->assertFalse( file_exists( $filename ) );
@@ -52,7 +52,7 @@ class FileTest extends TestCase
 
     public function testCreateFileRecursively()
     {
-        $filename = self::$tempPathname . '/' . microtime( true ) . '/foo.txt';
+        $filename = self::$tempPathname . '/recursive-' . microtime( true ) . '/foo.txt';
 
         $this->assertFalse( file_exists( dirname( $filename ) ) );
         $this->assertFalse( file_exists( $filename ) );
