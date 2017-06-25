@@ -84,15 +84,21 @@ class File extends Node
      */
     public function putContents( $data, $flags=0, resource $context=null )
     {
-        if( $this->exists() && !$this->isWritable() )
+        if( $this->exists() )
         {
-            $exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getPathname(), 'Permission denied' );
-            throw new \InvalidArgumentException( $exceptionMessage );
+            if( !$this->isWritable() )
+            {
+                $exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getPathname(), 'Permission denied' );
+                throw new \InvalidArgumentException( $exceptionMessage );
+            }
         }
-        if( !$this->getParent()->isWritable() )
+        else
         {
-            $exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getParent()->getPathname(), 'Permission denied' );
-            throw new \InvalidArgumentException( $exceptionMessage );
+            if( !$this->getParent()->isWritable() )
+            {
+                $exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getParent()->getPathname(), 'Permission denied' );
+                throw new \InvalidArgumentException( $exceptionMessage );
+            }
         }
 
         if( $context == null )
