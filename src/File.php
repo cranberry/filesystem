@@ -72,8 +72,16 @@ class File extends Node
             throw new \InvalidArgumentException( $exceptionMessage );
 		}
 
-        $contents = file_get_contents( $this->getPathname(), $use_include_path, $context, $offset, $maxlen );
-        return $contents;
+	    if( $maxlen == null )
+	    {
+	        $contents = file_get_contents( $this->getPathname(), $use_include_path, $context, $offset );
+	    }
+	    else
+	    {
+	        $contents = file_get_contents( $this->getPathname(), $use_include_path, $context, $offset, $maxlen );
+	    }
+
+	    return $contents;
 	}
 
     /**
