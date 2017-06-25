@@ -135,7 +135,7 @@ class FileTest extends TestCase
 
         $mockFile
             ->method( 'exists' )
-            ->willReturn( false );
+            ->willReturn( true );
 
         $mockFile
             ->method( 'isWritable' )
@@ -161,7 +161,7 @@ class FileTest extends TestCase
 
         $mockFile = $this
             ->getMockBuilder( File::class )
-            ->setMethods( ['isWritable', 'parent'] )
+            ->setMethods( ['isWritable', 'getParent'] )
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -170,7 +170,7 @@ class FileTest extends TestCase
             ->willReturn( true );
 
         $mockFile
-            ->method( 'parent' )
+            ->method( 'getParent' )
             ->willReturn( $mockParent );
 
         $didPutContents = $mockFile->putContents( time() );
