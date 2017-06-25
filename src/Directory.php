@@ -101,20 +101,31 @@ class Directory extends Node
 	{
 		$childPathname = $this->getPathname() . DIRECTORY_SEPARATOR . $filename;
 
-		switch( $type )
-		{
-			case self::DIRECTORY:
-				$childClass = Directory::class;
-				break;
+        if( file_exists( $childPathname ) )
+        {
+            $childClass = File::class;
 
-			case null:
-			case self::FILE:
-				$childClass = File::class;
-				break;
-		}
-		$child = new $childClass( $childPathname );
+            if( is_dir( $childPathname ) )
+            {
+                $childClass = Directory::class;
+            }
+        }
+        else
+        {
+            switch( $type )
+            {
+                case self::DIRECTORY:
+                    $childClass = Directory::class;
+                    break;
 
-		return $child;
+                case null:
+                case self::FILE:
+                    $childClass = File::class;
+                    break;
+            }
+        }
+
+		return new $childClass( $childPathname );
 	}
 
     /**

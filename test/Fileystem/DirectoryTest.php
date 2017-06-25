@@ -203,6 +203,28 @@ class DirectoryTest extends TestCase
 		$this->assertInstanceOf( $expectedClass, $child );
 	}
 
+    public function testGetChildWithExistingNodeOverridesTypeParam()
+    {
+        $directory = new Directory( self::$tempPathname );
+
+        $childFileBasename = '/file-' . microtime( true );
+        $childFilePathname = self::$tempPathname . $childFileBasename;
+        touch( $childFilePathname );
+
+        $childDirectoryBasename = '/dir-' . microtime( true );
+        $childDirectoryPathname = self::$tempPathname . $childDirectoryBasename;
+        mkdir( $childDirectoryPathname );
+
+        $this->assertTrue( file_exists( $childFilePathname ) );
+        $this->assertTrue( file_exists( $childDirectoryPathname ) );
+
+        $childFile = $directory->getChild( $childFileBasename, Node::DIRECTORY );
+        $childDirectory = $directory->getChild( $childDirectoryBasename );
+
+        $this->assertInstanceOf( File::class, $childFile );
+        $this->assertInstanceOf( Directory::class, $childDirectory );
+    }
+
     public function testGetChildrenDoesNotReturnDots()
     {
         $directory = new Directory( self::$tempPathname );
