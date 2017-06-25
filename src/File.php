@@ -61,16 +61,16 @@ class File extends Node
 	 */
 	public function getContents( $use_include_path=false, resource $context=null, $offset=0, $maxlen=null )
 	{
-        if( !$this->exists() )
-        {
-            $exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'No such file' );
-            throw new \InvalidArgumentException( $exceptionMessage );
-        }
+	    if( !$this->exists() )
+	    {
+	        $exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'No such file' );
+	        throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+	    }
 
 		if( !$this->isReadable() )
 		{
-            $exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'Permission denied' );
-            throw new \InvalidArgumentException( $exceptionMessage );
+	        $exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'Permission denied' );
+	        throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 		}
 
 	    if( $maxlen == null )

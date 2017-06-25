@@ -84,6 +84,7 @@ class FileTest extends TestCase
 
 	/**
 	 * @expectedException  InvalidArgumentException
+	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
 	public function testGetContentsOfNonExistentFileThrowsException()
 	{
@@ -102,6 +103,7 @@ class FileTest extends TestCase
 
     /**
 	 * @expectedException  InvalidArgumentException
+	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
 	public function testGetContentsOfUnreadableFileThrowsException()
 	{
