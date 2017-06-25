@@ -39,7 +39,12 @@ abstract class Node extends \SplFileInfo
 	}
 
 	/**
-	 * @return	Cranberry\Filesystem\Directory
+     * Return a Directory object representing the current object's parent
+     *   directory.
+     *
+     * If $this represents root (i.e., '/'), return false
+     *
+	 * @return	Cranberry\Filesystem\Directory|false
 	 */
 	public function getParent()
 	{
