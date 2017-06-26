@@ -9,10 +9,10 @@ use PHPUnit\Framework\TestCase;
 
 class DirectoryTest extends TestCase
 {
-    /**
-     * @var    string
-     */
-    protected static $tempPathname;
+	/**
+	 * @var    string
+	 */
+	protected static $tempPathname;
 
 	public function expectedChildProvider()
 	{
@@ -22,174 +22,175 @@ class DirectoryTest extends TestCase
 		];
 	}
 
-    public static function setUpBeforeClass()
-    {
-        self::$tempPathname = dirname( __DIR__ ) . '/fixtures/temp';
-        if( !file_exists( self::$tempPathname ) )
-        {
-            mkdir( self::$tempPathname, 0777, true );
-        }
-    }
+	public static function setUpBeforeClass()
+	{
+		self::$tempPathname = dirname( __DIR__ ) . '/fixtures/temp';
+		if( !file_exists( self::$tempPathname ) )
+		{
+			mkdir( self::$tempPathname, 0777, true );
+		}
+	}
 
-    public function testCreateDirectory()
-    {
-        $pathname = self::$tempPathname . '/bar-' . microtime( true );
+	public function testCreateDirectory()
+	{
+		$pathname = self::$tempPathname . '/bar-' . microtime( true );
 
-        $this->assertFalse( file_exists( $pathname ) );
+		$this->assertFalse( file_exists( $pathname ) );
 
-        $directory = new Directory( $pathname );
-        $returnValue = $directory->create();
+		$directory = new Directory( $pathname );
+		$returnValue = $directory->create();
 
-        $this->assertTrue( $returnValue );
-        $this->assertTrue( file_exists( $pathname ) );
-    }
+		$this->assertTrue( $returnValue );
+		$this->assertTrue( file_exists( $pathname ) );
+	}
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testCreateExistingDirectoryNonRecursivelyThrowsException()
-    {
-        $pathname = self::$tempPathname . '/' . microtime( true );
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testCreateExistingDirectoryNonRecursivelyThrowsException()
+	{
+		$pathname = self::$tempPathname . '/' . microtime( true );
 
-        $this->assertFalse( file_exists( $pathname ) );
+		$this->assertFalse( file_exists( $pathname ) );
 
-        $directory = new Directory( $pathname );
-        $recursive = false;
+		$directory = new Directory( $pathname );
+		$recursive = false;
 
-        $directory->create( $recursive );
-        $directory->create( $recursive );
-    }
+		$directory->create( $recursive );
+		$directory->create( $recursive );
+	}
 
-    public function testCreateExistingDirectoryRecursivelyReturnsTrue()
-    {
-        $pathname = self::$tempPathname . '/' . microtime( true );
+	public function testCreateExistingDirectoryRecursivelyReturnsTrue()
+	{
+		$pathname = self::$tempPathname . '/' . microtime( true );
 
-        $this->assertFalse( file_exists( $pathname ) );
+		$this->assertFalse( file_exists( $pathname ) );
 
-        $directory = new Directory( $pathname );
-        $recursive = true;
+		$directory = new Directory( $pathname );
+		$recursive = true;
 
-        $directory->create( $recursive );
+		$directory->create( $recursive );
 
-        $this->assertTrue( $directory->create( $recursive ) );
-    }
+		$this->assertTrue( $directory->create( $recursive ) );
+	}
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testCreateWithExistingUnwritableParentThrowsException()
-    {
-        $mockParent = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists','isWritable'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testCreateWithExistingUnwritableParentThrowsException()
+	{
+		$mockParent = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists','isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockParent
-            ->method( 'exists' )
-            ->willReturn( true );
+		$mockParent
+			->method( 'exists' )
+			->willReturn( true );
 
-        $mockParent
-            ->method( 'isWritable' )
-            ->willReturn( false );
+		$mockParent
+			->method( 'isWritable' )
+			->willReturn( false );
 
-        $mockDirectory = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists', 'getParent'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+		$mockDirectory = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists', 'getParent'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockDirectory
-            ->method( 'exists' )
-            ->willReturn( false );
+		$mockDirectory
+			->method( 'exists' )
+			->willReturn( false );
 
-        $mockDirectory
-            ->method( 'getParent' )
-            ->willReturn( $mockParent );
+		$mockDirectory
+			->method( 'getParent' )
+			->willReturn( $mockParent );
 
-        $mockDirectory->create();
-    }
+		$mockDirectory->create();
+	}
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testCreateWithNonExistingParentUnrecursivelyThrowsException()
-    {
-        $mockParent = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testCreateWithNonExistingParentUnrecursivelyThrowsException()
+	{
+		$mockParent = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockParent
-            ->method( 'exists' )
-            ->willReturn( false );
+		$mockParent
+			->method( 'exists' )
+			->willReturn( false );
 
-        $mockDirectory = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists', 'getParent'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+		$mockDirectory = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists', 'getParent'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockDirectory
-            ->method( 'exists' )
-            ->willReturn( false );
+		$mockDirectory
+			->method( 'exists' )
+			->willReturn( false );
 
-        $mockDirectory
-            ->method( 'getParent' )
-            ->willReturn( $mockParent );
+		$mockDirectory
+			->method( 'getParent' )
+			->willReturn( $mockParent );
 
-        $recursive = false;
-        $mockDirectory->create( $recursive );
-    }
-    public function testDeleteRemovesDirectory()
-    {
-        $testParentPathname = self::$tempPathname . '/' . microtime( true );
-        mkdir( $testParentPathname, 0777, true );
+		$recursive = false;
+		$mockDirectory->create( $recursive );
+	}
 
-        $this->assertTrue( file_exists( $testParentPathname ) );
+	public function testDeleteRemovesDirectory()
+	{
+		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		mkdir( $testParentPathname, 0777, true );
 
-        $directory = new Directory( $testParentPathname );
-        $returnValue = $directory->delete();
+		$this->assertTrue( file_exists( $testParentPathname ) );
 
-        $this->assertTrue( $returnValue );
-        $this->assertFalse( file_exists( $testParentPathname ) );
-    }
+		$directory = new Directory( $testParentPathname );
+		$returnValue = $directory->delete();
 
-    public function testDeleteNonEmptyDirectoryDeletesChildren()
-    {
-        $testParentPathname = self::$tempPathname . '/' . microtime( true );
-        mkdir( $testParentPathname, 0777, true );
+		$this->assertTrue( $returnValue );
+		$this->assertFalse( file_exists( $testParentPathname ) );
+	}
 
-        $this->assertTrue( file_exists( $testParentPathname ) );
+	public function testDeleteNonEmptyDirectoryDeletesChildren()
+	{
+		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		mkdir( $testParentPathname, 0777, true );
 
-        /* Children */
-        $testSubfolderPathname = $testParentPathname . '/bar';
-        mkdir( $testSubfolderPathname, 0777, true );
+		$this->assertTrue( file_exists( $testParentPathname ) );
 
-        $testChildFilename = $testParentPathname . '/foo.txt';
-        touch( $testChildFilename );
+		/* Children */
+		$testSubfolderPathname = $testParentPathname . '/bar';
+		mkdir( $testSubfolderPathname, 0777, true );
 
-        $directory = new Directory( $testParentPathname );
-        $returnValue = $directory->delete();
+		$testChildFilename = $testParentPathname . '/foo.txt';
+		touch( $testChildFilename );
 
-        $this->assertTrue( $returnValue );
-        $this->assertFalse( file_exists( $testParentPathname ) );
-    }
+		$directory = new Directory( $testParentPathname );
+		$returnValue = $directory->delete();
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testDeleteUnreadableDirectoryThrowsException()
-    {
-        $testPathname = self::$tempPathname . '/noread-' . microtime( true );
-        mkdir( $testPathname, 0311, true );
+		$this->assertTrue( $returnValue );
+		$this->assertFalse( file_exists( $testParentPathname ) );
+	}
 
-        $this->assertTrue( file_exists( $testPathname ) );
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testDeleteUnreadableDirectoryThrowsException()
+	{
+		$testPathname = self::$tempPathname . '/noread-' . microtime( true );
+		mkdir( $testPathname, 0311, true );
 
-        $directory = new Directory( $testPathname );
-        $directory->delete();
-    }
+		$this->assertTrue( file_exists( $testPathname ) );
+
+		$directory = new Directory( $testPathname );
+		$directory->delete();
+	}
 
 	/**
 	 * @dataProvider	expectedChildProvider
@@ -202,27 +203,27 @@ class DirectoryTest extends TestCase
 		$this->assertInstanceOf( $expectedClass, $child );
 	}
 
-    public function testGetChildWithExistingNodeIgnoresTypeParam()
-    {
-        $directory = new Directory( self::$tempPathname );
+	public function testGetChildWithExistingNodeIgnoresTypeParam()
+	{
+		$directory = new Directory( self::$tempPathname );
 
-        $childFileBasename = '/file-' . microtime( true );
-        $childFilePathname = self::$tempPathname . $childFileBasename;
-        touch( $childFilePathname );
+		$childFileBasename = '/file-' . microtime( true );
+		$childFilePathname = self::$tempPathname . $childFileBasename;
+		touch( $childFilePathname );
 
-        $childDirectoryBasename = '/dir-' . microtime( true );
-        $childDirectoryPathname = self::$tempPathname . $childDirectoryBasename;
-        mkdir( $childDirectoryPathname );
+		$childDirectoryBasename = '/dir-' . microtime( true );
+		$childDirectoryPathname = self::$tempPathname . $childDirectoryBasename;
+		mkdir( $childDirectoryPathname );
 
-        $this->assertTrue( file_exists( $childFilePathname ) );
-        $this->assertTrue( file_exists( $childDirectoryPathname ) );
+		$this->assertTrue( file_exists( $childFilePathname ) );
+		$this->assertTrue( file_exists( $childDirectoryPathname ) );
 
-        $childFile = $directory->getChild( $childFileBasename, Node::DIRECTORY );
-        $childDirectory = $directory->getChild( $childDirectoryBasename, Node::FILE );
+		$childFile = $directory->getChild( $childFileBasename, Node::DIRECTORY );
+		$childDirectory = $directory->getChild( $childDirectoryBasename, Node::FILE );
 
-        $this->assertInstanceOf( File::class, $childFile );
-        $this->assertInstanceOf( Directory::class, $childDirectory );
-    }
+		$this->assertInstanceOf( File::class, $childFile );
+		$this->assertInstanceOf( Directory::class, $childDirectory );
+	}
 
 	/**
 	 * @expectedException	BadMethodCallException
@@ -238,302 +239,302 @@ class DirectoryTest extends TestCase
 		$directory->getChild( $childFilename );
 	}
 
-    public function testGetChildrenDoesNotReturnDots()
-    {
-        $directory = new Directory( self::$tempPathname );
-        $children = $directory->getChildren();
+	public function testGetChildrenDoesNotReturnDots()
+	{
+		$directory = new Directory( self::$tempPathname );
+		$children = $directory->getChildren();
 
-        foreach( $children as $node )
-        {
-            $this->assertNotEquals( '.', $node->getFilename() );
-            $this->assertNotEquals( '..', $node->getFilename() );
-        }
-    }
+		foreach( $children as $node )
+		{
+			$this->assertNotEquals( '.', $node->getFilename() );
+			$this->assertNotEquals( '..', $node->getFilename() );
+		}
+	}
 
-    public function testGetChildrenReturnsArray()
-    {
-        $directory = new Directory( self::$tempPathname );
-        $children = $directory->getChildren();
+	public function testGetChildrenReturnsArray()
+	{
+		$directory = new Directory( self::$tempPathname );
+		$children = $directory->getChildren();
 
-        $this->assertTrue( is_array( $children ) );
-    }
+		$this->assertTrue( is_array( $children ) );
+	}
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testGetChildrenOfNonExistentDirectoryThrowsException()
-    {
-        $mockDirectory = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testGetChildrenOfNonExistentDirectoryThrowsException()
+	{
+		$mockDirectory = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockDirectory
-            ->method( 'exists' )
-            ->willReturn( false );
+		$mockDirectory
+			->method( 'exists' )
+			->willReturn( false );
 
-        $children = $mockDirectory->getChildren();
-    }
+		$children = $mockDirectory->getChildren();
+	}
 
-    /**
-     * @expectedException   InvalidArgumentException
-     */
-    public function testGetChildrenOfUnreadableDirectoryThrowsException()
-    {
-        $mockDirectory = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists', 'isReadable'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+	/**
+	 * @expectedException   InvalidArgumentException
+	 */
+	public function testGetChildrenOfUnreadableDirectoryThrowsException()
+	{
+		$mockDirectory = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists', 'isReadable'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $mockDirectory
-            ->method( 'exists' )
-            ->willReturn( true );
+		$mockDirectory
+			->method( 'exists' )
+			->willReturn( true );
 
-        $mockDirectory
-            ->method( 'isReadable' )
-            ->willReturn( false );
+		$mockDirectory
+			->method( 'isReadable' )
+			->willReturn( false );
 
-        $children = $mockDirectory->getChildren();
-    }
+		$children = $mockDirectory->getChildren();
+	}
 
-    public function testGetChildrenReturnsArrayOfNodeObjects()
-    {
-        $testParentPathname = self::$tempPathname . '/' . microtime( true );
-        mkdir( $testParentPathname, 0777, true );
+	public function testGetChildrenReturnsArrayOfNodeObjects()
+	{
+		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		mkdir( $testParentPathname, 0777, true );
 
-        $directory = new Directory( $testParentPathname );
+		$directory = new Directory( $testParentPathname );
 
-        /* File */
-        $testChildFilename = $testParentPathname . '/foo.txt';
-        touch( $testChildFilename );
+		/* File */
+		$testChildFilename = $testParentPathname . '/foo.txt';
+		touch( $testChildFilename );
 
-        $children = $directory->getChildren();
-        $this->assertEquals( 1, count( $children ) );
-        $this->assertInstanceOf( \Cranberry\Filesystem\File::class, $children[0] );
+		$children = $directory->getChildren();
+		$this->assertEquals( 1, count( $children ) );
+		$this->assertInstanceOf( \Cranberry\Filesystem\File::class, $children[0] );
 
-        unlink( $testChildFilename );
+		unlink( $testChildFilename );
 
-        /* Directory */
-        $testChildPathname = $testParentPathname . '/bar';
-        mkdir( $testChildPathname );
+		/* Directory */
+		$testChildPathname = $testParentPathname . '/bar';
+		mkdir( $testChildPathname );
 
-        $children = $directory->getChildren();
-        $this->assertEquals( 1, count( $children ) );
-        $this->assertInstanceOf( \Cranberry\Filesystem\Directory::class, $children[0] );
-    }
+		$children = $directory->getChildren();
+		$this->assertEquals( 1, count( $children ) );
+		$this->assertInstanceOf( \Cranberry\Filesystem\Directory::class, $children[0] );
+	}
 
-    public function testGetChildrenWithFilter()
-    {
-        $testParentPathname = self::$tempPathname . '/' . microtime( true );
-        mkdir( $testParentPathname, 0777, true );
+	public function testGetChildrenWithFilter()
+	{
+		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		mkdir( $testParentPathname, 0777, true );
 
-        $directory = new Directory( $testParentPathname );
+		$directory = new Directory( $testParentPathname );
 
-        /* File */
-        $testChildFilename = $testParentPathname . '/foo.txt';
-        touch( $testChildFilename );
+		/* File */
+		$testChildFilename = $testParentPathname . '/foo.txt';
+		touch( $testChildFilename );
 
-        /* Directory */
-        $testChildPathname = $testParentPathname . '/bar';
-        mkdir( $testChildPathname );
+		/* Directory */
+		$testChildPathname = $testParentPathname . '/bar';
+		mkdir( $testChildPathname );
 
-        /* Filter */
-        $filter = function()
-        {
-            $node = $this->current();
-            return $node->getBasename() == 'bar';
-        };
+		/* Filter */
+		$filter = function()
+		{
+			$node = $this->current();
+			return $node->getBasename() == 'bar';
+		};
 
-        $children = $directory->getChildren( $filter );
+		$children = $directory->getChildren( $filter );
 
-        $this->assertEquals( 1, count( $children ) );
-        $this->assertInstanceOf( \Cranberry\Filesystem\Directory::class, $children[0] );
-        $this->assertEquals( 'bar', $children[0]->getBasename() );
-    }
+		$this->assertEquals( 1, count( $children ) );
+		$this->assertInstanceOf( \Cranberry\Filesystem\Directory::class, $children[0] );
+		$this->assertEquals( 'bar', $children[0]->getBasename() );
+	}
 
-    public function testGetChildrenByFileExtension()
-    {
-        $testParentPathname = self::$tempPathname . '/' . microtime( true );
-        mkdir( $testParentPathname, 0777, true );
+	public function testGetChildrenByFileExtension()
+	{
+		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		mkdir( $testParentPathname, 0777, true );
 
-        $directory = new Directory( $testParentPathname );
+		$directory = new Directory( $testParentPathname );
 
-        /* Files */
-        $testChildFilename1 = $testParentPathname . '/foo.txt';
-        touch( $testChildFilename1 );
+		/* Files */
+		$testChildFilename1 = $testParentPathname . '/foo.txt';
+		touch( $testChildFilename1 );
 
-        $testChildFilename2 = $testParentPathname . '/bar.php';
-        touch( $testChildFilename2 );
+		$testChildFilename2 = $testParentPathname . '/bar.php';
+		touch( $testChildFilename2 );
 
-        $testChildFilename3 = $testParentPathname . '/baz.yml';
-        touch( $testChildFilename3 );
+		$testChildFilename3 = $testParentPathname . '/baz.yml';
+		touch( $testChildFilename3 );
 
-        $testChildFilename4 = $testParentPathname . '/boz.gif';
-        touch( $testChildFilename4 );
+		$testChildFilename4 = $testParentPathname . '/boz.gif';
+		touch( $testChildFilename4 );
 
-        $extensions = ['php','yml'];
-        $children = $directory->getChildrenByFileExtension( $extensions );
+		$extensions = ['php','yml'];
+		$children = $directory->getChildrenByFileExtension( $extensions );
 
-        $this->assertTrue( is_array( $children ) );
-        $this->assertEquals( 2, count( $children ) );
+		$this->assertTrue( is_array( $children ) );
+		$this->assertEquals( 2, count( $children ) );
 
-        foreach( $children as $file )
-        {
-            $this->assertTrue( in_array( $file->getExtension(), $extensions ) );
-        }
-    }
+		foreach( $children as $file )
+		{
+			$this->assertTrue( in_array( $file->getExtension(), $extensions ) );
+		}
+	}
 
-    public function testIsParentOfChildNodeReturnsTrue()
-    {
-        $parentDirectory = new Directory( self::$tempPathname );
+	public function testIsParentOfChildNodeReturnsTrue()
+	{
+		$parentDirectory = new Directory( self::$tempPathname );
 
-        $childNode = $parentDirectory
-            ->getChild( microtime( true ), Node::DIRECTORY )
-            ->getChild( microtime( true ), Node::DIRECTORY );
+		$childNode = $parentDirectory
+			->getChild( microtime( true ), Node::DIRECTORY )
+			->getChild( microtime( true ), Node::DIRECTORY );
 
-        $this->assertTrue( $parentDirectory->isParentOfNode( $childNode ) );
-    }
+		$this->assertTrue( $parentDirectory->isParentOfNode( $childNode ) );
+	}
 
-    public function testIsParentOfRootNodeReturnsFalse()
-    {
-        $directory = new Directory( self::$tempPathname );
-        $rootDirectory = new Directory( '/' );
+	public function testIsParentOfRootNodeReturnsFalse()
+	{
+		$directory = new Directory( self::$tempPathname );
+		$rootDirectory = new Directory( '/' );
 
-        $this->assertFalse( $directory->isParentOfNode( $rootDirectory ) );
-    }
+		$this->assertFalse( $directory->isParentOfNode( $rootDirectory ) );
+	}
 
-    public function testIsParentOfUnrelatedNodeReturnsFalse()
-    {
-        $parentDirectory = new Directory( self::$tempPathname );
+	public function testIsParentOfUnrelatedNodeReturnsFalse()
+	{
+		$parentDirectory = new Directory( self::$tempPathname );
 
-        $nonChildNode = $parentDirectory
-            ->getParent()
-            ->getChild( microtime( true ), Node::DIRECTORY );
+		$nonChildNode = $parentDirectory
+			->getParent()
+			->getChild( microtime( true ), Node::DIRECTORY );
 
-        $this->assertFalse( $parentDirectory->isParentOfNode( $nonChildNode ) );
-    }
+		$this->assertFalse( $parentDirectory->isParentOfNode( $nonChildNode ) );
+	}
 
-    /**
+	/**
 	 * @expectedException		InvalidArgumentException
-     * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
-     */
-    public function testMoveDirectoryToFileThrowsException()
-    {
-        $sourceDirectoryMock = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
+	 */
+	public function testMoveDirectoryToFileThrowsException()
+	{
+		$sourceDirectoryMock = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $sourceDirectoryMock
-            ->method( 'exists' )
-            ->willReturn( true );
+		$sourceDirectoryMock
+			->method( 'exists' )
+			->willReturn( true );
 
-        $targetFileMock = $this
-            ->getMockBuilder( File::class )
-            ->setMethods( ['exists'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+		$targetFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists'] )
+			->disableOriginalConstructor()
+			->getMock();
 
-        $targetFileMock
-            ->method( 'exists' )
-            ->willReturn( true );
+		$targetFileMock
+			->method( 'exists' )
+			->willReturn( true );
 
-        $sourceDirectoryMock->moveTo( $targetFileMock );
-    }
+		$sourceDirectoryMock->moveTo( $targetFileMock );
+	}
 
 	public function testMoveDirectoryToNonExistentDirectoryWithWritableParent()
 	{
 		$sourcePathname = self::$tempPathname . '/source-' . microtime( true );
-        $sourceDirectory = new Directory( $sourcePathname );
-        $sourceDirectory->create();
-        $this->assertTrue( $sourceDirectory->exists() );
+		$sourceDirectory = new Directory( $sourcePathname );
+		$sourceDirectory->create();
+		$this->assertTrue( $sourceDirectory->exists() );
 
 		$parentDirectory = $sourceDirectory->getParent();
 		$this->assertTrue( $parentDirectory->isWritable() );
 
-        $targetDirectory = $parentDirectory->getChild( 'target-' . microtime( true ), Node::DIRECTORY );
+		$targetDirectory = $parentDirectory->getChild( 'target-' . microtime( true ), Node::DIRECTORY );
 		$this->assertFalse( $targetDirectory->exists() );
 
-        $movedDirectory = $sourceDirectory->moveTo( $targetDirectory );
+		$movedDirectory = $sourceDirectory->moveTo( $targetDirectory );
 
-        $this->assertFalse( $sourceDirectory->exists() );
-        $this->assertTrue( $movedDirectory->exists() );
-        $this->assertEquals( $targetDirectory, $movedDirectory );
+		$this->assertFalse( $sourceDirectory->exists() );
+		$this->assertTrue( $movedDirectory->exists() );
+		$this->assertEquals( $targetDirectory, $movedDirectory );
 	}
 
-    /**
-     * @expectedException		InvalidArgumentException
+	/**
+	 * @expectedException		InvalidArgumentException
 	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
-     */
-    public function testMoveToChildDirectoryThrowsException()
-    {
-        $parentPathname = self::$tempPathname . '/parent-' . microtime( true );
-        $parentDirectory = new Directory( $parentPathname );
-        $childDirectory = $parentDirectory->getChild( 'child-' . microtime( true ), Node::DIRECTORY );
+	 */
+	public function testMoveToChildDirectoryThrowsException()
+	{
+		$parentPathname = self::$tempPathname . '/parent-' . microtime( true );
+		$parentDirectory = new Directory( $parentPathname );
+		$childDirectory = $parentDirectory->getChild( 'child-' . microtime( true ), Node::DIRECTORY );
 
-        $parentDirectory->moveTo( $childDirectory );
-    }
+		$parentDirectory->moveTo( $childDirectory );
+	}
 
 	/**
-     * @expectedException		InvalidArgumentException
+	 * @expectedException		InvalidArgumentException
 	 * expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
-     */
+	 */
 	public function testMoveDirectoryToNonExistentDirectoryWithUnwritableParentThrowsException()
 	{
 		$sourceDirectoryMock = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists','getPathname'] )
-            ->disableOriginalConstructor()
-            ->getMock();
-        $sourceDirectoryMock
-            ->method( 'exists' )
-            ->willReturn( true );
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists','getPathname'] )
+			->disableOriginalConstructor()
+			->getMock();
 		$sourceDirectoryMock
-            ->method( 'getPathname' )
-            ->willReturn( 'source-' . microtime( true ) );
+			->method( 'exists' )
+			->willReturn( true );
+		$sourceDirectoryMock
+			->method( 'getPathname' )
+			->willReturn( 'source-' . microtime( true ) );
 
 		$targetDirectoryParentMock = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists','getPathname','isWritable'] )
-            ->disableOriginalConstructor()
-            ->getMock();
-        $targetDirectoryParentMock
-            ->method( 'exists' )
-            ->willReturn( true );
-		$sourceDirectoryMock
-            ->method( 'getPathname' )
-            ->willReturn( 'target-' . microtime( true ) );
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists','getPathname','isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
 		$targetDirectoryParentMock
-            ->method( 'isWritable' )
-            ->willReturn( false );
+			->method( 'exists' )
+			->willReturn( true );
+		$sourceDirectoryMock
+			->method( 'getPathname' )
+			->willReturn( 'target-' . microtime( true ) );
+		$targetDirectoryParentMock
+			->method( 'isWritable' )
+			->willReturn( false );
 
 		$targetDirectoryMock = $this
-            ->getMockBuilder( Directory::class )
-            ->setMethods( ['exists','getParent'] )
-            ->disableOriginalConstructor()
-            ->getMock();
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists','getParent'] )
+			->disableOriginalConstructor()
+			->getMock();
 		$targetDirectoryMock
-            ->method( 'exists' )
-            ->willReturn( false );
+			->method( 'exists' )
+			->willReturn( false );
 		$targetDirectoryMock
-            ->method( 'getParent' )
-            ->willReturn( $targetDirectoryParentMock );
+			->method( 'getParent' )
+			->willReturn( $targetDirectoryParentMock );
 
 		$sourceDirectoryMock->moveTo( $targetDirectoryMock );
 	}
 
-    public static function tearDownAfterClass()
-    {
-        if( file_exists( self::$tempPathname ) )
-        {
-            $command = sprintf( 'chmod -R 0755 %s', self::$tempPathname );
-            exec( $command );
+	public static function tearDownAfterClass()
+	{
+		if( file_exists( self::$tempPathname ) )
+		{
+			$command = sprintf( 'chmod -R 0755 %s', self::$tempPathname );
+			exec( $command );
 
-            $command = sprintf( 'rm -r %s', self::$tempPathname );
-            exec( $command );
-        }
-    }
+			$command = sprintf( 'rm -r %s', self::$tempPathname );
+			exec( $command );
+		}
+	}
 }

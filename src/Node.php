@@ -33,9 +33,9 @@ abstract class Node extends \SplFileInfo
 		parent::__construct( $pathname );
 	}
 
-    abstract public function create();
+	abstract public function create();
 
-    abstract public function delete();
+	abstract public function delete();
 
 	/**
 	 * @return	boolean
@@ -46,43 +46,43 @@ abstract class Node extends \SplFileInfo
 	}
 
 	/**
-     * Return a Directory object representing the current object's parent
-     *   directory.
-     *
-     * If $this represents root (i.e., '/'), return false
-     *
+	 * Return a Directory object representing the current object's parent
+	 *   directory.
+	 *
+	 * If $this represents root (i.e., '/'), return false
+	 *
 	 * @return	Cranberry\Filesystem\Directory|false
 	 */
 	public function getParent()
 	{
-        $selfPathname = $this->getPathname();
-        $parentPathname = dirname( $selfPathname );
+		$selfPathname = $this->getPathname();
+		$parentPathname = dirname( $selfPathname );
 
-        if( $parentPathname == $selfPathname )
-        {
-            return false;
-        }
+		if( $parentPathname == $selfPathname )
+		{
+			return false;
+		}
 
 		return new Directory( $parentPathname );
 	}
 
-    /**
-     * Attempt to move the file represented by self to $targetNode
-     *
-     * If $targetNode is a Directory object *and* $targetNode exists, the
-     *   resulting Node will be a child of $targetNode (i.e., match the
-     *   command-line behavior of `mv <source> <directory>`)
-     *
-     * @param   Cranberry\Filesystem\Node   $targetNode
-     * @return  Node
-     */
-    public function moveTo( Node $targetNode )
-    {
-        if( !$this->exists() )
-        {
+	/**
+	 * Attempt to move the file represented by self to $targetNode
+	 *
+	 * If $targetNode is a Directory object *and* $targetNode exists, the
+	 *   resulting Node will be a child of $targetNode (i.e., match the
+	 *   command-line behavior of `mv <source> <directory>`)
+	 *
+	 * @param   Cranberry\Filesystem\Node   $targetNode
+	 * @return  Node
+	 */
+	public function moveTo( Node $targetNode )
+	{
+		if( !$this->exists() )
+		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_MOVE, $this->getPathname(), 'No such file or directory' );
 			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
-        }
+		}
 
 		if( $targetNode->exists() )
 		{
@@ -99,49 +99,49 @@ abstract class Node extends \SplFileInfo
 			if( $targetNodeParent == false || !$targetNodeParent->exists() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'No such file or directory' );
-			    throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 			}
 
 			if( !$targetNodeParent->isWritable() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'Permission denied' );
-			    throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 
-        $newNode = $targetNode;
+		$newNode = $targetNode;
 
-        if( $targetNode instanceof Directory )
-        {
-            if( $targetNode->exists() )
-            {
-                switch( get_class( $this ) )
-                {
-                    case Directory::class:
-                        $childType = self::DIRECTORY;
-                        break;
+		if( $targetNode instanceof Directory )
+		{
+			if( $targetNode->exists() )
+			{
+				switch( get_class( $this ) )
+				{
+					case Directory::class:
+						$childType = self::DIRECTORY;
+						break;
 
-                    case File::class:
-                    default:
-                        $childType = self::FILE;
-                        break;
-                }
+					case File::class:
+					default:
+						$childType = self::FILE;
+						break;
+				}
 
-                $newNode = $targetNode->getChild( $this->getBasename(), $childType );
-            }
-        }
+				$newNode = $targetNode->getChild( $this->getBasename(), $childType );
+			}
+		}
 
-        $didRename = rename( $this->getPathname(), $newNode->getPathname() );
+		$didRename = rename( $this->getPathname(), $newNode->getPathname() );
 
-        return $newNode;
-    }
+		return $newNode;
+	}
 
-    /**
-     * @param   int    $mode
-     * @return  boolean
-     */
-    public function setPerms( $mode )
-    {
-        return chmod( $this->getPathname(), $mode );
-    }
+	/**
+	 * @param   int    $mode
+	 * @return  boolean
+	 */
+	public function setPerms( $mode )
+	{
+		return chmod( $this->getPathname(), $mode );
+	}
 }
