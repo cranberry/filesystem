@@ -86,6 +86,38 @@ class File extends Node
 	}
 
     /**
+     * Perform File-specific validation on move request before handing off to
+     *   parent method
+     *
+     * @param   Cranberry\Filesystem\Node   $targetNode
+     * @return  Node
+     */
+    public function moveTo( Node $targetNode )
+    {
+		if( $targetNode instanceof File )
+		{
+			$targetParentNode = $targetNode->getParent();
+
+			/* Can't move to file if parent isn't writable */
+			if( !$targetParentNode->isWritable() )
+			{
+				$exceptionMessage = sprintf( 'Cannot move %s to %s: Permission denied.', $this->getPathname(), $targetParentNode->getPathname() );
+				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+		}
+		if( $targetNode instanceof Directory )
+		{
+			if( !$targetNode->exists() )
+			{
+				$exceptionMessage = sprintf( 'Cannot move %s to %s: No such file or directory.', $this->getPathname(), $targetNode->getPathname() );
+			    throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+			}
+		}
+
+        return parent::moveTo( $targetNode );
+    }
+
+    /**
      * @param   mixed       $data
      * @param   int         $flags
      * @param   resource    $flags

@@ -10,6 +10,13 @@ abstract class Node extends \SplFileInfo
 	const DIRECTORY = 1;
 	const FILE = 2;
 
+	const ERROR_CODE_PERMISSIONS = 1;
+	const ERROR_CODE_NOSUCHNODE = 2;
+	const ERROR_CODE_INVALIDTARGET = 4;
+
+	const ERROR_STRING_MOVE = 'Cannot move %s: %s.';
+	const ERROR_STRING_MOVETO = 'Cannot move %s to %s: %s.';
+
 	/**
 	 * Expand leading ~ to $HOME if necessary, then hand off to SplFileInfo
 	 *
@@ -58,6 +65,76 @@ abstract class Node extends \SplFileInfo
 
 		return new Directory( $parentPathname );
 	}
+
+    /**
+     * Attempt to move the file represented by self to $targetNode
+     *
+     * If $targetNode is a Directory object *and* $targetNode exists, the
+     *   resulting Node will be a child of $targetNode (i.e., match the
+     *   command-line behavior of `mv <source> <directory>`)
+     *
+     * @param   Cranberry\Filesystem\Node   $targetNode
+     * @return  Node
+     */
+    public function moveTo( Node $targetNode )
+    {
+        if( !$this->exists() )
+        {
+			$exceptionMessage = sprintf( self::ERROR_STRING_MOVE, $this->getPathname(), 'No such file or directory' );
+			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+        }
+
+		if( $targetNode->exists() )
+		{
+			if( !$targetNode->isWritable() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'Permission denied' );
+				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+		}
+		else
+		{
+			$targetNodeParent = $targetNode->getParent();
+
+			if( $targetNodeParent == false || !$targetNodeParent->exists() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'No such file or directory' );
+			    throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+			}
+
+			if( !$targetNodeParent->isWritable() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'Permission denied' );
+			    throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+		}
+
+        $newNode = $targetNode;
+
+        if( $targetNode instanceof Directory )
+        {
+            if( $targetNode->exists() )
+            {
+                switch( get_class( $this ) )
+                {
+                    case Directory::class:
+                        $childType = self::DIRECTORY;
+                        break;
+
+                    case File::class:
+                    default:
+                        $childType = self::FILE;
+                        break;
+                }
+
+                $newNode = $targetNode->getChild( $this->getBasename(), $childType );
+            }
+        }
+
+        $didRename = rename( $this->getPathname(), $newNode->getPathname() );
+
+        return $newNode;
+    }
 
     /**
      * @param   int    $mode

@@ -209,4 +209,58 @@ class Directory extends Node
 
         return $this->getChildren( $filter, [$extensions] );
     }
+
+	/**
+	 * @param   Cranberry\Filesystem\Node  $node
+	 * @return  boolean
+	 */
+	public function isParentOfNode( Node $node )
+	{
+	    do
+	    {
+	        $parentNode = $node->getParent();
+
+	        /* $node has no parent (i.e., '/') */
+	        if( $parentNode == false )
+	        {
+	            return false;
+	        }
+
+	        if( $parentNode->getPathname() == $this->getPathname() )
+	        {
+	            return true;
+	        }
+
+	        $node = $parentNode;
+	    }
+	    while( $parentNode != false );
+
+	    return false;
+	}
+
+	/**
+	 * Perform File-specific validation on move request before handing off to
+	 *   parent method
+	 *
+	 * @param   Cranberry\Filesystem\Directory  $targetDirectory
+	 * @return  boolean
+	 */
+	public function moveTo( Node $targetDirectory )
+	{
+		/* As on the command line, a Directory object can only be moved to another Directory */
+		if( !($targetDirectory instanceof Directory) )
+		{
+			$exceptionMessage = sprintf( 'Cannot move %s: Invalid destination %s.', $this->getPathname(), $targetDirectory->getPathname() );
+			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
+		}
+
+	    /* Prevent attempts to move a parent directory into one of its children */
+	    if( $this->isParentOfNode( $targetDirectory ) )
+	    {
+	        $exceptionMessage = sprintf( 'Cannot move %s to child directory %s.', $this->getPathname(), $targetDirectory->getPathname() );
+	        throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
+	    }
+
+	    return parent::moveTo( $targetDirectory );
+	}
 }

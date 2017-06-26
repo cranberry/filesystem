@@ -385,6 +385,146 @@ class DirectoryTest extends TestCase
         }
     }
 
+    public function testIsParentOfChildNodeReturnsTrue()
+    {
+        $parentDirectory = new Directory( self::$tempPathname );
+
+        $childNode = $parentDirectory
+            ->getChild( microtime( true ), Node::DIRECTORY )
+            ->getChild( microtime( true ), Node::DIRECTORY );
+
+        $this->assertTrue( $parentDirectory->isParentOfNode( $childNode ) );
+    }
+
+    public function testIsParentOfRootNodeReturnsFalse()
+    {
+        $directory = new Directory( self::$tempPathname );
+        $rootDirectory = new Directory( '/' );
+
+        $this->assertFalse( $directory->isParentOfNode( $rootDirectory ) );
+    }
+
+    public function testIsParentOfUnrelatedNodeReturnsFalse()
+    {
+        $parentDirectory = new Directory( self::$tempPathname );
+
+        $nonChildNode = $parentDirectory
+            ->getParent()
+            ->getChild( microtime( true ), Node::DIRECTORY );
+
+        $this->assertFalse( $parentDirectory->isParentOfNode( $nonChildNode ) );
+    }
+
+    /**
+	 * @expectedException		InvalidArgumentException
+     * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
+     */
+    public function testMoveDirectoryToFileThrowsException()
+    {
+        $sourceDirectoryMock = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $sourceDirectoryMock
+            ->method( 'exists' )
+            ->willReturn( true );
+
+        $targetFileMock = $this
+            ->getMockBuilder( File::class )
+            ->setMethods( ['exists'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $targetFileMock
+            ->method( 'exists' )
+            ->willReturn( true );
+
+        $sourceDirectoryMock->moveTo( $targetFileMock );
+    }
+
+	public function testMoveDirectoryToNonExistentDirectoryWithWritableParent()
+	{
+		$sourcePathname = self::$tempPathname . '/source-' . microtime( true );
+        $sourceDirectory = new Directory( $sourcePathname );
+        $sourceDirectory->create();
+        $this->assertTrue( $sourceDirectory->exists() );
+
+		$parentDirectory = $sourceDirectory->getParent();
+		$this->assertTrue( $parentDirectory->isWritable() );
+
+        $targetDirectory = $parentDirectory->getChild( 'target-' . microtime( true ), Node::DIRECTORY );
+		$this->assertFalse( $targetDirectory->exists() );
+
+        $movedDirectory = $sourceDirectory->moveTo( $targetDirectory );
+
+        $this->assertFalse( $sourceDirectory->exists() );
+        $this->assertTrue( $movedDirectory->exists() );
+        $this->assertEquals( $targetDirectory, $movedDirectory );
+	}
+
+    /**
+     * @expectedException		InvalidArgumentException
+	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
+     */
+    public function testMoveToChildDirectoryThrowsException()
+    {
+        $parentPathname = self::$tempPathname . '/parent-' . microtime( true );
+        $parentDirectory = new Directory( $parentPathname );
+        $childDirectory = $parentDirectory->getChild( 'child-' . microtime( true ), Node::DIRECTORY );
+
+        $parentDirectory->moveTo( $childDirectory );
+    }
+
+	/**
+     * @expectedException		InvalidArgumentException
+	 * expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+     */
+	public function testMoveDirectoryToNonExistentDirectoryWithUnwritableParentThrowsException()
+	{
+		$sourceDirectoryMock = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists','getPathname'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+        $sourceDirectoryMock
+            ->method( 'exists' )
+            ->willReturn( true );
+		$sourceDirectoryMock
+            ->method( 'getPathname' )
+            ->willReturn( 'source-' . microtime( true ) );
+
+		$targetDirectoryParentMock = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists','getPathname','isWritable'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+        $targetDirectoryParentMock
+            ->method( 'exists' )
+            ->willReturn( true );
+		$sourceDirectoryMock
+            ->method( 'getPathname' )
+            ->willReturn( 'target-' . microtime( true ) );
+		$targetDirectoryParentMock
+            ->method( 'isWritable' )
+            ->willReturn( false );
+
+		$targetDirectoryMock = $this
+            ->getMockBuilder( Directory::class )
+            ->setMethods( ['exists','getParent'] )
+            ->disableOriginalConstructor()
+            ->getMock();
+		$targetDirectoryMock
+            ->method( 'exists' )
+            ->willReturn( false );
+		$targetDirectoryMock
+            ->method( 'getParent' )
+            ->willReturn( $targetDirectoryParentMock );
+
+		$sourceDirectoryMock->moveTo( $targetDirectoryMock );
+	}
+
     public static function tearDownAfterClass()
     {
         if( file_exists( self::$tempPathname ) )
