@@ -17,7 +17,6 @@ class DirectoryTest extends TestCase
 	public function expectedChildProvider()
 	{
 		return [
-			[ null, \Cranberry\Filesystem\File::class ],
 			[ Node::FILE, \Cranberry\Filesystem\File::class ],
 			[ Node::DIRECTORY, \Cranberry\Filesystem\Directory::class ],
 		];
@@ -203,7 +202,7 @@ class DirectoryTest extends TestCase
 		$this->assertInstanceOf( $expectedClass, $child );
 	}
 
-    public function testGetChildWithExistingNodeOverridesTypeParam()
+    public function testGetChildWithExistingNodeIgnoresTypeParam()
     {
         $directory = new Directory( self::$tempPathname );
 
@@ -219,11 +218,25 @@ class DirectoryTest extends TestCase
         $this->assertTrue( file_exists( $childDirectoryPathname ) );
 
         $childFile = $directory->getChild( $childFileBasename, Node::DIRECTORY );
-        $childDirectory = $directory->getChild( $childDirectoryBasename );
+        $childDirectory = $directory->getChild( $childDirectoryBasename, Node::FILE );
 
         $this->assertInstanceOf( File::class, $childFile );
         $this->assertInstanceOf( Directory::class, $childDirectory );
     }
+
+	/**
+	 * @expectedException	BadMethodCallException
+	 */
+	public function testGetChildWithNonExistentNodeWithoutTypeParamThrowsException()
+	{
+		$directory = new Directory( self::$tempPathname );
+		$childFilename = microtime( true );
+		$childPathname = self::$tempPathname . '/' . $childFilename;
+
+		$this->assertFalse( file_exists( $childPathname ) );
+
+		$directory->getChild( $childFilename );
+	}
 
     public function testGetChildrenDoesNotReturnDots()
     {

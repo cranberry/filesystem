@@ -97,7 +97,7 @@ class Directory extends Node
 	 * @param	string	$filename
 	 * @return	Cranberry\Filesystem\Node
 	 */
-	public function getChild( $filename, $type=self::FILE )
+	public function getChild( $filename, $type=null )
 	{
 		$childPathname = $this->getPathname() . DIRECTORY_SEPARATOR . $filename;
 
@@ -114,11 +114,14 @@ class Directory extends Node
         {
             switch( $type )
             {
+				case null:
+					throw new \BadMethodCallException( 'Missing child node type' );
+					break;
+
                 case self::DIRECTORY:
                     $childClass = Directory::class;
                     break;
 
-                case null:
                 case self::FILE:
                     $childClass = File::class;
                     break;
