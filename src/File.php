@@ -35,11 +35,22 @@ class File extends Node
 	}
 
 	/**
+	 * Deletes file
+	 *
+	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
+	 *
 	 * @param    resource    $context
+	 *
 	 * @return   boolean
 	 */
-	public function delete( resource $context=null )
+	public function delete( resource $context=null ) : bool
 	{
+		if( !$this->isDeletable() )
+		{
+			$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Permission denied' );
+			throw new PermissionsException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+		}
+
 		if( $context == null )
 		{
 			$result = unlink( $this->getPathname() );

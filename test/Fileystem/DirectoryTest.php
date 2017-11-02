@@ -143,6 +143,25 @@ class DirectoryTest extends TestCase
 		$mockDirectory->create( $recursive );
 	}
 
+	/**
+	 * @expectedException	Cranberry\Filesystem\PermissionsException
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_delete_throwsExceptionIfNotDeletable()
+	{
+		$directoryMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['isDeletable'] )
+			->getMock();
+
+		$directoryMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$directoryMock->delete();
+	}
+
 	public function testDeleteRemovesDirectory()
 	{
 		$testParentPathname = self::$tempPathname . '/' . microtime( true );
@@ -384,6 +403,47 @@ class DirectoryTest extends TestCase
 		{
 			$this->assertTrue( in_array( $file->getExtension(), $extensions ) );
 		}
+	}
+
+	public function test_isDeletable_returnsFalseIfChildFileIsNotDeletable()
+	{
+		$childMock = $this
+			->getMockBuilder( File::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['isDeletable'] )
+			->getMock();
+		$childMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$parentMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['isExecutable', 'isWritable'] )
+			->getMock();
+		$parentMock
+			->method( 'isExecutable' )
+			->willReturn( true );
+		$parentMock
+			->method( 'isWritable' )
+			->willReturn( true );
+
+		$directoryMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['exists', 'getChildren', 'getParent'] )
+			->getMock();
+		$directoryMock
+			->method( 'exists' )
+			->willReturn( true );
+		$directoryMock
+			->method( 'getChildren' )
+			->willReturn( [$childMock] );
+		$directoryMock
+			->method( 'getParent' )
+			->willReturn( $parentMock );
+
+		$this->assertFalse( $directoryMock->isDeletable() );
 	}
 
 	public function testIsParentOfChildNodeReturnsTrue()

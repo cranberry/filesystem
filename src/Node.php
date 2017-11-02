@@ -14,6 +14,7 @@ abstract class Node extends \SplFileInfo
 	const ERROR_CODE_NOSUCHNODE = 2;
 	const ERROR_CODE_INVALIDTARGET = 4;
 
+	const ERROR_STRING_DELETE = 'Cannot delete %s: %s.';
 	const ERROR_STRING_MOVE = 'Cannot move %s: %s.';
 	const ERROR_STRING_MOVETO = 'Cannot move %s to %s: %s.';
 
@@ -35,6 +36,13 @@ abstract class Node extends \SplFileInfo
 
 	abstract public function create();
 
+	/**
+	 * Deletes node
+	 *
+	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
+	 *
+	 * @return	void
+	 */
 	abstract public function delete();
 
 	/**
@@ -64,6 +72,23 @@ abstract class Node extends \SplFileInfo
 		}
 
 		return new Directory( $parentPathname );
+	}
+
+	/**
+	 * Returns whether node can be deleted
+	 *
+	 * @return	bool
+	 */
+	public function isDeletable() : bool
+	{
+		if( !$this->exists() )
+		{
+			return false;
+		}
+
+		$parentDirectory = $this->getParent();
+
+		return $parentDirectory->isWritable() && $parentDirectory->isExecutable();
 	}
 
 	/**

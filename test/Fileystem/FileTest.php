@@ -64,6 +64,25 @@ class FileTest extends TestCase
 		$this->assertTrue( file_exists( $filename ) );
 	}
 
+	/**
+	 * @expectedException	Cranberry\Filesystem\PermissionsException
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_delete_throwsExceptionIfNotDeletable()
+	{
+		$fileMock = $this
+			->getMockBuilder( File::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['isDeletable'] )
+			->getMock();
+
+		$fileMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$fileMock->delete();
+	}
+
 	public function testDeleteUnlinksFile()
 	{
 		$testParentPathname = self::$tempPathname . '/' . microtime( true );

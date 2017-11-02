@@ -76,10 +76,20 @@ class Directory extends Node
 	}
 
 	/**
+	 * Deletes file
+	 *
+	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
+	 *
 	 * @return   boolean
 	 */
-	public function delete()
+	public function delete() : bool
 	{
+		if( !$this->isDeletable() )
+		{
+			$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Permission denied' );
+			throw new PermissionsException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+		}
+
 		$children = $this->getChildren();
 
 		if( count( $children ) > 0 )
@@ -208,6 +218,30 @@ class Directory extends Node
 		};
 
 		return $this->getChildren( $filter, [$extensions] );
+	}
+
+	/**
+	 * Returns whether directory can be deleted
+	 *
+	 * @return	bool
+	 */
+	public function isDeletable() : bool
+	{
+		if( !parent::isDeletable() )
+		{
+			return false;
+		}
+
+		$children = $this->getChildren();
+		foreach( $children as $childNode )
+		{
+			if( !$childNode->isDeletable() )
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

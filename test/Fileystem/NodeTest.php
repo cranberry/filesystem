@@ -41,6 +41,52 @@ class NodeTest extends TestCase
 		];
 	}
 
+	public function test_isDeletable_returnsFalseForNonExistentNode()
+	{
+		$nodeMock = $this->getMockForAbstractClass( Node::class, [], '', false, true, true, ['exists'] );
+		$this->assertFalse( $nodeMock->isDeletable() );
+	}
+
+	public function provider_isDeletable_usesParentWriteExecutePermissions() : array
+	{
+		return [
+			[true, true],
+			[true, false],
+			[false, true],
+			[false, false],
+		];
+	}
+
+	/**
+	 * @dataProvider	provider_isDeletable_usesParentWriteExecutePermissions
+	 */
+	public function test_isDeletable_usesParentWriteExecutePermissions( bool $parentW, bool $parentX )
+	{
+		$parentMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['isExecutable','isWritable'] )
+			->getMock();
+		$parentMock
+			->method( 'isExecutable' )
+			->willReturn( $parentX );
+		$parentMock
+			->method( 'isWritable' )
+			->willReturn( $parentW );
+
+		$nodeMock = $this->getMockForAbstractClass( Node::class, [], '', false, true, true, ['exists','getParent'] );
+		$nodeMock
+			->method( 'exists' )
+			->willReturn( true );
+		$nodeMock
+			->method( 'getParent' )
+			->willReturn( $parentMock );
+
+		$shouldBeDeletable = $parentW && $parentX;
+
+		$this->assertEquals( $shouldBeDeletable, $nodeMock->isDeletable() );
+	}
+
 	public function testConstructorReplacesLeadingTildeWithHomeDirectory()
 	{
 		$filename = 'file-' . time();
