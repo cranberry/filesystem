@@ -9,18 +9,26 @@ use PHPUnit\Framework\TestCase;
 
 class LinkTest extends TestCase
 {
-	/**
-	 * @var    string
-	 */
-	protected static $tempPathname;
-
-	public static function setUpBeforeClass()
+	static public function getTempPathname()
 	{
-		self::$tempPathname = dirname( __DIR__ ) . '/tmp';
-		if( !file_exists( self::$tempPathname ) )
+		$tempPathname = dirname( __DIR__ ) . '/tmp-Link';
+		if( !file_exists( $tempPathname ) )
 		{
-			mkdir( self::$tempPathname, 0777, true );
+			mkdir( $tempPathname, 0777, true );
 		}
+
+		return $tempPathname;
+	}
+
+	/**
+	 * Creates a directory and returns the full path
+	 */
+	static public function getTempDirectoryPathname( string $pathname )
+	{
+		$dirPathname = sprintf( '%s/%s-source', self::getTempPathname(), $pathname );
+		mkdir( $dirPathname );
+
+		return $dirPathname;
 	}
 
 	/**
@@ -28,7 +36,7 @@ class LinkTest extends TestCase
 	 */
 	static public function getTempFilePathname( string $filename )
 	{
-		$filePathname = sprintf( '%s/%s-source', self::$tempPathname, $filename );
+		$filePathname = sprintf( '%s/%s-source', self::getTempPathname(), $filename );
 		touch( $filePathname );
 
 		return $filePathname;
@@ -44,7 +52,7 @@ class LinkTest extends TestCase
 			throw new \Exception( 'Invalid source file: ' . $filePathname );
 		}
 
-		$linkFilename = sprintf( '%s/%s-target', self::$tempPathname, basename( $filePathname ) );
+		$linkFilename = sprintf( '%s/%s-link', self::getTempPathname(), basename( $filePathname ) );
 		symlink( $filePathname, $linkFilename );
 
 		return $linkFilename;
@@ -115,11 +123,76 @@ class LinkTest extends TestCase
 		$this->assertTrue( $link->exists() );
 	}
 
+	public function test_isDir_returnsFalse()
+	{
+		$dirPathname = self::getTempDirectoryPathname( microtime( true ) );
+		$linkPathname = self::getTempLinkPathname( $dirPathname );
+
+		$this->assertTrue( file_exists( $dirPathname ) );
+		$this->assertTrue( is_link( $linkPathname ) );
+
+		$link = new Link( $linkPathname );
+
+		$this->assertTrue( $link->isLink() );
+		$this->assertFalse( $link->isDir() );
+		$this->assertFalse( $link->isFile() );
+	}
+
+	public function test_isFile_returnsFalse()
+	{
+		$filePathname = self::getTempFilePathname( microtime( true ) );
+		$linkPathname = self::getTempLinkPathname( $filePathname );
+
+		$this->assertTrue( file_exists( $filePathname ) );
+		$this->assertTrue( is_link( $linkPathname ) );
+
+		$link = new Link( $linkPathname );
+
+		$this->assertTrue( $link->isLink() );
+		$this->assertFalse( $link->isDir() );
+		$this->assertFalse( $link->isFile() );
+	}
+
+	public function provider_targetIs_methodsReturnBool() : array
+	{
+		$filePathname = self::getTempFilePathname( 'file-' . microtime( true ) );
+		$fileLinkPathname = self::getTempLinkPathname( $filePathname );
+
+		$dirPathname = self::getTempDirectoryPathname( 'dir-' . microtime( true ) );
+		$dirLinkPathname = self::getTempLinkPathname( $dirPathname );
+
+		$linkDirLinkPathname = self::getTempLinkPathname( $dirLinkPathname );
+		$linkFileLinkPathname = self::getTempLinkPathname( $fileLinkPathname );
+
+		return [
+			[$fileLinkPathname, true, false, false],
+			[$dirLinkPathname, false, true, false],
+			[$linkDirLinkPathname, false, false, true],
+			[$linkFileLinkPathname, false, false, true],
+		];
+	}
+
+	/**
+	 * @dataProvider	provider_targetIs_methodsReturnBool
+	 */
+	public function test_targetIs_methodsReturnBool( string $linkPathname, bool $targetIsFile, bool $targetIsDir, bool $targetIsLink )
+	{
+		$link = new Link( $linkPathname );
+
+		$this->assertTrue( $link->isLink() );
+
+		$this->assertEquals( $targetIsFile, $link->targetIsFile() );
+		$this->assertEquals( $targetIsDir,  $link->targetIsDir() );
+		$this->assertEquals( $targetIsLink, $link->targetIsLink() );
+	}
+
 	public static function tearDownAfterClass()
 	{
-		if( file_exists( self::$tempPathname ) )
+		$tempPathname = self::getTempPathname();
+
+		if( file_exists( $tempPathname ) )
 		{
-			$command = sprintf( 'rm -r %s', self::$tempPathname );
+			$command = sprintf( 'rm -r %s', $tempPathname );
 			exec( $command );
 		}
 	}
