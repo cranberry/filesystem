@@ -279,6 +279,57 @@ class DirectoryTest extends TestCase
 		$this->assertTrue( is_array( $children ) );
 	}
 
+	public function test_getChildren_returnsExpectedTypes()
+	{
+		/* Create parent directory on which to call getChildren */
+		$parentPathname = sprintf( '%s/%s', self::$tempPathname, microtime( true ) );
+		mkdir( $parentPathname );
+		$this->assertTrue( file_exists( $parentPathname ) );
+
+		/* Create directory... */
+		$childDirectoryPathname = sprintf( '%s/dir-%s', $parentPathname, microtime( true ) );
+		mkdir( $childDirectoryPathname );
+		$this->assertTrue( file_exists( $childDirectoryPathname ) );
+
+		/* ...and a symlink to the directory */
+		$childDirectoryLinkPathname = sprintf( '%s/link-%s', $parentPathname, microtime( true ) );
+		symlink( $childDirectoryPathname, $childDirectoryLinkPathname );
+		$this->assertTrue( is_link( $childDirectoryLinkPathname ) );
+
+		/* Create file... */
+		$childFilePathname = sprintf( '%s/file-%s', $parentPathname, microtime( true ) );
+		touch( $childFilePathname );
+		$this->assertTrue( file_exists( $childFilePathname ) );
+
+		/* ...and a symlink to the file */
+		$childFileLinkPathname = sprintf( '%s/link-%s', $parentPathname, microtime( true ) );
+		symlink( $childFilePathname, $childFileLinkPathname );
+		$this->assertTrue( is_link( $childFileLinkPathname ) );
+
+		$parentDirectory = new Directory( $parentPathname );
+
+		$children = $parentDirectory->getChildren();
+		$this->assertEquals( 4, count( $children ) );
+
+		foreach( $children as $childNode )
+		{
+			$nodeClass = get_class( $childNode );
+
+			if( $childNode->isDir() )
+			{
+				$this->assertEquals( Directory::class, $nodeClass );
+			}
+			if( $childNode->isFile() )
+			{
+				$this->assertEquals( File::class, $nodeClass );
+			}
+			if( $childNode->isLink() )
+			{
+				$this->assertEquals( Link::class, $nodeClass );
+			}
+		}
+	}
+
 	/**
 	 * @expectedException   InvalidArgumentException
 	 */

@@ -200,6 +200,10 @@ class Directory extends Node
 			{
 				$child = new Directory( $pathname );
 			}
+			if( $splFileInfo->isLink() )
+			{
+				$child = new Link( $pathname );
+			}
 
 			$children[] = $child;
 		}
