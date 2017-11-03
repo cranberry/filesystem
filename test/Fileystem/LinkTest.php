@@ -84,6 +84,22 @@ class LinkTest extends TestCase
 		$this->assertFalse( file_exists( $linkPathname ) );
 	}
 
+	public function test_exists_withNonExistentLinkReturnsFalse()
+	{
+		$filePathname = self::getTempFilePathname( microtime( true ) );
+		$linkPathname = self::getTempLinkPathname( $filePathname );
+
+		unlink( $filePathname );
+		unlink( $linkPathname );
+
+		$this->assertFalse( file_exists( $filePathname ) );
+		$this->assertFalse( is_link( $linkPathname ) );
+
+		$link = new Link( $linkPathname );
+
+		$this->assertFalse( $link->exists() );
+	}
+
 	public function test_exists_withNonExistentSourceReturnsTrue()
 	{
 		$filePathname = self::getTempFilePathname( microtime( true ) );
