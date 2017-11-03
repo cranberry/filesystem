@@ -25,7 +25,7 @@ class DirectoryTest extends TestCase
 
 	public static function setUpBeforeClass()
 	{
-		self::$tempPathname = dirname( __DIR__ ) . '/fixtures/temp';
+		self::$tempPathname = dirname( __DIR__ ) . '/tmp-Directory';
 		if( !file_exists( self::$tempPathname ) )
 		{
 			mkdir( self::$tempPathname, 0777, true );
