@@ -34,8 +34,6 @@ abstract class Node extends \SplFileInfo
 		parent::__construct( $pathname );
 	}
 
-	abstract public function create();
-
 	/**
 	 * Deletes node
 	 *
