@@ -5,4 +5,4 @@
  */
 namespace Cranberry\Filesystem;
 
-class PermissionsException extends \Exception {}
+class Exception extends \Exception {}
