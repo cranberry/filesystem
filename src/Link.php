@@ -26,4 +26,14 @@ class Link extends Node
 
 		return unlink( $this->getPathname() );
 	}
+
+	/**
+	 * Returns whether link exists at pathname
+	 *
+	 * @return	bool
+	 */
+	public function exists() : bool
+	{
+		return is_link( $this->getPathname() );
+	}
 }
