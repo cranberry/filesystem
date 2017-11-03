@@ -41,9 +41,9 @@ abstract class Node extends \SplFileInfo
 	 *
 	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
 	 *
-	 * @return	void
+	 * @return	bool
 	 */
-	abstract public function delete();
+	abstract public function delete() : bool;
 
 	/**
 	 * @return	boolean
