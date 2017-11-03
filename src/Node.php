@@ -9,6 +9,7 @@ abstract class Node extends \SplFileInfo
 {
 	const DIRECTORY = 1;
 	const FILE = 2;
+	const LINK = 4;
 
 	const ERROR_CODE_PERMISSIONS = 1;
 	const ERROR_CODE_NOSUCHNODE = 2;

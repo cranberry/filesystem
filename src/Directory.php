@@ -135,6 +135,10 @@ class Directory extends Node
 				case self::FILE:
 					$childClass = File::class;
 					break;
+
+				case self::LINK:
+					$childClass = Link::class;
+					break;
 			}
 		}
 

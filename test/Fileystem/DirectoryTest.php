@@ -19,6 +19,7 @@ class DirectoryTest extends TestCase
 		return [
 			[ Node::FILE, \Cranberry\Filesystem\File::class ],
 			[ Node::DIRECTORY, \Cranberry\Filesystem\Directory::class ],
+			[ Node::LINK, \Cranberry\Filesystem\Link::class ],
 		];
 	}
 
