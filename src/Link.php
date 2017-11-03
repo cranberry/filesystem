@@ -10,9 +10,7 @@ class Link extends Node
 	/**
 	 * Deletes link
 	 *
-	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
-	 *
-	 * @param    resource    $context
+	 * @throws	Cranberry\Filesystem\Exception	If not deletable
 	 *
 	 * @return   boolean
 	 */
@@ -20,8 +18,18 @@ class Link extends Node
 	{
 		if( !$this->isDeletable() )
 		{
-			$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Permission denied' );
-			throw new PermissionsException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			if( !$this->exists() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'No such link' );
+				$exceptionCode = self::ERROR_CODE_NOSUCHNODE;
+			}
+			else
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Invalid permissions' );
+				$exceptionCode = self::ERROR_CODE_PERMISSIONS;
+			}
+
+			throw new Exception( $exceptionMessage, $exceptionCode );
 		}
 
 		return unlink( $this->getPathname() );

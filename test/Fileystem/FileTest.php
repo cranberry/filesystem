@@ -65,16 +65,43 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException	Cranberry\Filesystem\PermissionsException
-	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function test_delete_throwsExceptionIfNotDeletable()
+	public function test_delete_throwsException_ifNodeDoesNotExist()
 	{
 		$fileMock = $this
 			->getMockBuilder( File::class )
 			->disableOriginalConstructor( true )
-			->setMethods( ['isDeletable'] )
+			->setMethods( ['exists', 'isDeletable'] )
 			->getMock();
+
+		$fileMock
+			->method( 'exists' )
+			->willReturn( false );
+
+		$fileMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$fileMock->delete();
+	}
+
+	/**
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_delete_throwsException_ifNodeExistsButIsNotDeletable()
+	{
+		$fileMock = $this
+			->getMockBuilder( File::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['exists', 'isDeletable'] )
+			->getMock();
+
+		$fileMock
+			->method( 'exists' )
+			->willReturn( true );
 
 		$fileMock
 			->method( 'isDeletable' )

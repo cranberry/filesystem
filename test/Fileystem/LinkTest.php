@@ -59,16 +59,20 @@ class LinkTest extends TestCase
 	}
 
 	/**
-	 * @expectedException	Cranberry\Filesystem\PermissionsException
-	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function test_delete_throwsExceptionIfNotDeletable()
+	public function test_delete_throwsException_ifNodeDoesNotExist()
 	{
 		$linkMock = $this
 			->getMockBuilder( Link::class )
 			->disableOriginalConstructor( true )
-			->setMethods( ['isDeletable'] )
+			->setMethods( ['exists', 'isDeletable'] )
 			->getMock();
+
+		$linkMock
+			->method( 'exists' )
+			->willReturn( false );
 
 		$linkMock
 			->method( 'isDeletable' )
@@ -76,6 +80,30 @@ class LinkTest extends TestCase
 
 		$linkMock->delete();
 	}
+
+	/**
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_delete_throwsException_ifNodeExistsButIsNotDeletable()
+	{
+		$linkMock = $this
+			->getMockBuilder( Link::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['exists', 'isDeletable'] )
+			->getMock();
+
+		$linkMock
+			->method( 'exists' )
+			->willReturn( true );
+
+		$linkMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$linkMock->delete();
+	}
+
 
 	public function test_delete_unlinksLink()
 	{

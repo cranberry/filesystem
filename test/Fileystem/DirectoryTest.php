@@ -145,16 +145,43 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException	Cranberry\Filesystem\PermissionsException
-	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function test_delete_throwsExceptionIfNotDeletable()
+	public function test_delete_throwsException_ifNodeDoesNotExist()
 	{
 		$directoryMock = $this
 			->getMockBuilder( Directory::class )
 			->disableOriginalConstructor( true )
-			->setMethods( ['isDeletable'] )
+			->setMethods( ['exists', 'isDeletable'] )
 			->getMock();
+
+		$directoryMock
+			->method( 'exists' )
+			->willReturn( false );
+
+		$directoryMock
+			->method( 'isDeletable' )
+			->willReturn( false );
+
+		$directoryMock->delete();
+	}
+
+	/**
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_delete_throwsException_ifNodeExistsButIsNotDeletable()
+	{
+		$directoryMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['exists', 'isDeletable'] )
+			->getMock();
+
+		$directoryMock
+			->method( 'exists' )
+			->willReturn( true );
 
 		$directoryMock
 			->method( 'isDeletable' )

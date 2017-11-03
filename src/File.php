@@ -37,7 +37,7 @@ class File extends Node
 	/**
 	 * Deletes file
 	 *
-	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
+	 * @throws	Cranberry\Filesystem\Exception	If not deletable
 	 *
 	 * @param    resource    $context
 	 *
@@ -47,8 +47,18 @@ class File extends Node
 	{
 		if( !$this->isDeletable() )
 		{
-			$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Permission denied' );
-			throw new PermissionsException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			if( !$this->exists() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'No such file' );
+				$exceptionCode = self::ERROR_CODE_NOSUCHNODE;
+			}
+			else
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Invalid permissions' );
+				$exceptionCode = self::ERROR_CODE_PERMISSIONS;
+			}
+
+			throw new Exception( $exceptionMessage, $exceptionCode );
 		}
 
 		if( $context == null )
