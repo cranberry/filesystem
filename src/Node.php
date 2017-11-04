@@ -15,6 +15,7 @@ abstract class Node extends \SplFileInfo
 	const ERROR_CODE_NOSUCHNODE = 2;
 	const ERROR_CODE_INVALIDTARGET = 4;
 
+	const ERROR_STRING_CREATENODE = 'Cannot create node object for %s: %s.';
 	const ERROR_STRING_DELETE = 'Cannot delete %s: %s.';
 	const ERROR_STRING_MOVE = 'Cannot move %s: %s.';
 	const ERROR_STRING_MOVETO = 'Cannot move %s to %s: %s.';
@@ -36,9 +37,47 @@ abstract class Node extends \SplFileInfo
 	}
 
 	/**
+	 * Creates correctly typed node object from $pathname
+	 *
+	 * @param	string	$pathname
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If $pathname does not exist
+	 *
+	 * @return	Cranberry\Filesystem\Node
+	 */
+	static public function createNodeFromPathname( string $pathname ) : Node
+	{
+		if( !is_link( $pathname ) && !file_exists( $pathname ) )
+		{
+			$exceptionMessage = sprintf( self::ERROR_STRING_CREATENODE, $pathname, 'No such path' );
+			$exceptionCode = self::ERROR_CODE_NOSUCHNODE;
+
+			throw new Exception( $exceptionMessage, $exceptionCode );
+		}
+
+		if( is_link( $pathname ) )
+		{
+			$node = new Link( $pathname );
+		}
+		else
+		{
+			if( is_dir( $pathname ) )
+			{
+				$node = new Directory( $pathname );
+			}
+			if( is_file( $pathname ) )
+			{
+				$node = new File( $pathname );
+			}
+		}
+
+		return $node;
+	}
+
+	/**
 	 * Deletes node
 	 *
-	 * @throws	Cranberry\Filesystem\PermissionsException	If not deletable
+	 * @throws	Cranberry\Filesystem\Exception	If not deletable
 	 *
 	 * @return	bool
 	 */

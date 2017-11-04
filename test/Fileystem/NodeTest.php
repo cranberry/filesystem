@@ -9,25 +9,22 @@ use PHPUnit\Framework\TestCase;
 
 class NodeTest extends TestCase
 {
-	/**
-	 * @var    string
-	 */
-	protected static $tempPathname;
-
-	public static function setUpBeforeClass()
+	static public function getTempPathname()
 	{
-		self::$tempPathname = dirname( __DIR__ ) . '/fixtures/temp';
-		if( !file_exists( self::$tempPathname ) )
+		$tempPathname = dirname( __DIR__ ) . '/tmp-Link';
+		if( !file_exists( $tempPathname ) )
 		{
-			mkdir( self::$tempPathname, 0777, true );
+			mkdir( $tempPathname, 0777, true );
 		}
+
+		return $tempPathname;
 	}
 
 	public function sourceNodeProvider()
 	{
-		// Same value as self::$tempPathname, which isn't accessible to
+		// Same value as self::getTempPathname(), which isn't accessible to
 		//   @dataProvider methods
-		$tempPathname = dirname( __DIR__ ) . '/fixtures/temp';
+		$tempPathname = self::getTempPathname();
 
 		$sourcePathname = $tempPathname . '/dir-' . microtime( true );
 		$sourceDirectory = new Directory( $sourcePathname );
@@ -39,6 +36,53 @@ class NodeTest extends TestCase
 			[$sourceDirectory],
 			[$sourceFile],
 		];
+	}
+
+	/**
+	 * @expectedException	Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 */
+	public function test_createNodeFromPathname_throwsExceptionForNonExistentPath()
+	{
+		$pathname = sprintf( '%s/%s', self::getTempPathname(), microtime( true ) );
+
+		$this->assertFalse( file_exists( $pathname ) );
+
+		$node = Node::createNodeFromPathname( $pathname );
+	}
+
+	public function provider_createNodeFromPathname() : array
+	{
+		$pathname = sprintf( '%s/createNodeFromPathname-%s', self::getTempPathname(), microtime( true ) );
+		mkdir( $pathname );
+
+		$dirPathname = sprintf( '%s/dir-%s', $pathname, microtime( true ) );
+		mkdir( $dirPathname );
+
+		$filePathname = sprintf( '%s/file-%s', $pathname, microtime( true ) );
+		touch( $filePathname );
+
+		$linkDirPathname = sprintf( '%s/link-dir-%s', $pathname, microtime( true ) );
+		symlink( $dirPathname, $linkDirPathname );
+
+		$linkFilePathname = sprintf( '%s/link-file-%s', $pathname, microtime( true ) );
+		symlink( $filePathname, $linkFilePathname );
+
+		return [
+			[$dirPathname, Directory::Class],
+			[$filePathname, File::Class],
+			[$linkFilePathname, Link::Class],
+			[$linkDirPathname, Link::Class],
+		];
+	}
+
+	/**
+	 * @dataProvider	provider_createNodeFromPathname
+	 */
+	public function test_createNodeFromPathname( string $pathname, string $expectedClass )
+	{
+		$node = Node::createNodeFromPathname( $pathname );
+		$this->assertEquals( $expectedClass, get_class( $node ) );
 	}
 
 	public function test_isDeletable_returnsFalseForNonExistentNode()
@@ -108,7 +152,7 @@ class NodeTest extends TestCase
 
 	public function testExists()
 	{
-		$pathname = self::$tempPathname . '/' . microtime( true );
+		$pathname = self::getTempPathname() . '/' . microtime( true );
 
 		$mockNode = $this->getMockForAbstractClass( Node::class, [], '', false, true, true, ['getPathname'] );
 		$mockNode
@@ -131,7 +175,7 @@ class NodeTest extends TestCase
 
 	public function testGetParentReturnsDirectoryObject()
 	{
-		$pathname = self::$tempPathname . '/' . microtime( true );
+		$pathname = self::getTempPathname() . '/' . microtime( true );
 
 		$mockNode = $this->getMockForAbstractClass( Node::class, [], '', false, true, true, ['getPathname'] );
 		$mockNode
@@ -276,7 +320,7 @@ class NodeTest extends TestCase
 		$sourceNode->create();
 		$this->assertTrue( $sourceNode->exists() );
 
-		$targetPathname = self::$tempPathname . '/target-' . microtime( true );
+		$targetPathname = self::getTempPathname() . '/target-' . microtime( true );
 		$targetDirectory = new Directory( $targetPathname );
 		$targetDirectory->create();
 
@@ -313,7 +357,7 @@ class NodeTest extends TestCase
 	 */
 	public function testMoveNodeToExistingDirectoryCreatesChild( Node $sourceNode )
 	{
-		$targetPathname = self::$tempPathname . '/target-' . microtime( true );
+		$targetPathname = self::getTempPathname() . '/target-' . microtime( true );
 		$targetDirectory = new Directory( $targetPathname );
 		$targetDirectory->create( true );
 
@@ -328,7 +372,7 @@ class NodeTest extends TestCase
 
 	public function testSetPerms()
 	{
-		$pathname = self::$tempPathname . '/' . microtime( true );
+		$pathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $pathname, 0600 );
 
 		$mockNode = $this->getMockForAbstractClass( Node::class, [$pathname] );
@@ -349,9 +393,11 @@ class NodeTest extends TestCase
 
 	public static function tearDownAfterClass()
 	{
-		if( file_exists( self::$tempPathname ) )
+		$tempPathname = self::getTempPathname();
+
+		if( file_exists( $tempPathname ) )
 		{
-			$command = sprintf( 'rm -r %s', self::$tempPathname );
+			$command = sprintf( 'rm -r %s', $tempPathname );
 			exec( $command );
 		}
 	}
