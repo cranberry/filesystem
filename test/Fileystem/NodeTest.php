@@ -11,7 +11,7 @@ class NodeTest extends TestCase
 {
 	static public function getTempPathname()
 	{
-		$tempPathname = dirname( __DIR__ ) . '/tmp-Link';
+		$tempPathname = sprintf( '%s/tmp-%s', dirname( __DIR__ ), str_replace( '\\', '_', __CLASS__ ) );
 		if( !file_exists( $tempPathname ) )
 		{
 			mkdir( $tempPathname, 0777, true );

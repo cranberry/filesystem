@@ -9,23 +9,20 @@ use PHPUnit\Framework\TestCase;
 
 class FileTest extends TestCase
 {
-	/**
-	 * @var    string
-	 */
-	protected static $tempPathname;
-
-	public static function setUpBeforeClass()
+	static public function getTempPathname()
 	{
-		self::$tempPathname = dirname( __DIR__ ) . '/tmp-File';
-		if( !file_exists( self::$tempPathname ) )
+		$tempPathname = sprintf( '%s/tmp-%s', dirname( __DIR__ ), str_replace( '\\', '_', __CLASS__ ) );
+		if( !file_exists( $tempPathname ) )
 		{
-			mkdir( self::$tempPathname, 0777, true );
+			mkdir( $tempPathname, 0777, true );
 		}
+
+		return $tempPathname;
 	}
 
 	public function testCreateFile()
 	{
-		$filename = self::$tempPathname . '/createFile-' . microtime( true );
+		$filename = self::getTempPathname() . '/createFile-' . microtime( true );
 
 		$this->assertFalse( file_exists( $filename ) );
 
@@ -41,7 +38,7 @@ class FileTest extends TestCase
 	 */
 	public function testCreateChildOfNonExistentDirectoryThrowsException()
 	{
-		$filename = self::$tempPathname . '/dir-' . microtime( true ) . '/foo.txt';
+		$filename = self::getTempPathname() . '/dir-' . microtime( true ) . '/foo.txt';
 
 		$this->assertFalse( file_exists( dirname( $filename ) ) );
 		$this->assertFalse( file_exists( $filename ) );
@@ -52,7 +49,7 @@ class FileTest extends TestCase
 
 	public function testCreateFileRecursively()
 	{
-		$filename = self::$tempPathname . '/recursive-' . microtime( true ) . '/foo.txt';
+		$filename = self::getTempPathname() . '/recursive-' . microtime( true ) . '/foo.txt';
 
 		$this->assertFalse( file_exists( dirname( $filename ) ) );
 		$this->assertFalse( file_exists( $filename ) );
@@ -112,7 +109,7 @@ class FileTest extends TestCase
 
 	public function testDeleteUnlinksFile()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		/* Files */
@@ -130,7 +127,7 @@ class FileTest extends TestCase
 
 	public function testGetContents()
 	{
-		$testFilename = self::$tempPathname . '/getContents-' . microtime( true );
+		$testFilename = self::getTempPathname() . '/getContents-' . microtime( true );
 
 		$this->assertFalse( file_exists( $testFilename ) );
 
@@ -182,7 +179,7 @@ class FileTest extends TestCase
 
 	public function testMoveFileToExistingWritableFile()
 	{
-		$sourceFilename = self::$tempPathname . '/source-' . microtime( true );
+		$sourceFilename = self::getTempPathname() . '/source-' . microtime( true );
 		$sourceFile = new File( $sourceFilename );
 
 		$sourceFileContents = 'source-contents-' . microtime( true );
@@ -191,7 +188,7 @@ class FileTest extends TestCase
 		$this->assertTrue( $sourceFile->exists() );
 		$this->assertEquals( $sourceFileContents, $sourceFile->getContents() );
 
-		$targetFilename = self::$tempPathname . '/target-' . microtime( true );
+		$targetFilename = self::getTempPathname() . '/target-' . microtime( true );
 		$targetFile = new File( $targetFilename );
 
 		$targetFileContents = 'target-contents-' . microtime( true );
@@ -278,7 +275,7 @@ class FileTest extends TestCase
 
 	public function testMoveFileToNonExistentFileWithWritableParent()
 	{
-		$sourceFilename = self::$tempPathname . '/source-' . microtime( true );
+		$sourceFilename = self::getTempPathname() . '/source-' . microtime( true );
 		$sourceFile = new File( $sourceFilename );
 		$sourceFile->create();
 		$this->assertTrue( $sourceFile->exists() );
@@ -347,9 +344,10 @@ class FileTest extends TestCase
 
 	public static function tearDownAfterClass()
 	{
-		if( file_exists( self::$tempPathname ) )
+		$tempPathname = self::getTempPathname();
+		if( file_exists( $tempPathname ) )
 		{
-			$command = sprintf( 'rm -r %s', self::$tempPathname );
+			$command = sprintf( 'rm -r %s', $tempPathname );
 			exec( $command );
 		}
 	}
