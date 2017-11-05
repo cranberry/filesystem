@@ -121,15 +121,26 @@ class Directory extends Node
 	{
 		$childPathname = $this->getPathname() . DIRECTORY_SEPARATOR . $filename;
 
-		if( file_exists( $childPathname ) )
+		/* If $filename exists on disk in any form */
+		if( is_link( $childPathname ) || file_exists( $childPathname ) )
 		{
-			$childClass = File::class;
-
-			if( is_dir( $childPathname ) )
+			if( is_link( $childPathname ) )
 			{
-				$childClass = Directory::class;
+				$childClass = Link::class;
+			}
+			else
+			{
+				if( is_dir( $childPathname ) )
+				{
+					$childClass = Directory::class;
+				}
+				if( is_file( $childPathname ) )
+				{
+					$childClass = File::class;
+				}
 			}
 		}
+		/* If $filename does not exist on disk, $type is required */
 		else
 		{
 			switch( $type )

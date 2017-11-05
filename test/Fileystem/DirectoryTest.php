@@ -9,10 +9,16 @@ use PHPUnit\Framework\TestCase;
 
 class DirectoryTest extends TestCase
 {
-	/**
-	 * @var    string
-	 */
-	protected static $tempPathname;
+	static public function getTempPathname()
+	{
+		$tempPathname = sprintf( '%s/tmp-%s', dirname( __DIR__ ), str_replace( '\\', '_', __CLASS__ ) );
+		if( !file_exists( $tempPathname ) )
+		{
+			mkdir( $tempPathname, 0777, true );
+		}
+
+		return $tempPathname;
+	}
 
 	public function expectedChildProvider()
 	{
@@ -23,18 +29,9 @@ class DirectoryTest extends TestCase
 		];
 	}
 
-	public static function setUpBeforeClass()
-	{
-		self::$tempPathname = dirname( __DIR__ ) . '/tmp-Directory';
-		if( !file_exists( self::$tempPathname ) )
-		{
-			mkdir( self::$tempPathname, 0777, true );
-		}
-	}
-
 	public function testCreateDirectory()
 	{
-		$pathname = self::$tempPathname . '/bar-' . microtime( true );
+		$pathname = self::getTempPathname() . '/bar-' . microtime( true );
 
 		$this->assertFalse( file_exists( $pathname ) );
 
@@ -50,7 +47,7 @@ class DirectoryTest extends TestCase
 	 */
 	public function testCreateExistingDirectoryNonRecursivelyThrowsException()
 	{
-		$pathname = self::$tempPathname . '/' . microtime( true );
+		$pathname = self::getTempPathname() . '/' . microtime( true );
 
 		$this->assertFalse( file_exists( $pathname ) );
 
@@ -63,7 +60,7 @@ class DirectoryTest extends TestCase
 
 	public function testCreateExistingDirectoryRecursivelyReturnsTrue()
 	{
-		$pathname = self::$tempPathname . '/' . microtime( true );
+		$pathname = self::getTempPathname() . '/' . microtime( true );
 
 		$this->assertFalse( file_exists( $pathname ) );
 
@@ -192,7 +189,7 @@ class DirectoryTest extends TestCase
 
 	public function testDeleteRemovesDirectory()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		$this->assertTrue( file_exists( $testParentPathname ) );
@@ -206,7 +203,7 @@ class DirectoryTest extends TestCase
 
 	public function testDeleteNonEmptyDirectoryDeletesChildren()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		$this->assertTrue( file_exists( $testParentPathname ) );
@@ -230,7 +227,7 @@ class DirectoryTest extends TestCase
 	 */
 	public function testDeleteUnreadableDirectoryThrowsException()
 	{
-		$testPathname = self::$tempPathname . '/noread-' . microtime( true );
+		$testPathname = self::getTempPathname() . '/noread-' . microtime( true );
 		mkdir( $testPathname, 0311, true );
 
 		$this->assertTrue( file_exists( $testPathname ) );
@@ -242,7 +239,7 @@ class DirectoryTest extends TestCase
 	/**
 	 * @dataProvider	expectedChildProvider
 	 */
-	public function testGetChildReturnsNodeObject( $type, $expectedClass )
+	public function test_getChild_returnsNodeObject_forNonExistentPathname( $type, $expectedClass )
 	{
 		$directory = new Directory( time() );
 		$child = $directory->getChild( 'foo', $type );
@@ -250,16 +247,65 @@ class DirectoryTest extends TestCase
 		$this->assertInstanceOf( $expectedClass, $child );
 	}
 
+	public function provider_getChild_returnsNodeObject_forExistingPathname() : array
+	{
+		$pathname = sprintf( '%s/getChild_forExistingPathname-%s', self::getTempPathname(), microtime( true ) );
+		mkdir( $pathname );
+
+		$dirPathname = sprintf( '%s/dir-%s', $pathname, microtime( true ) );
+		mkdir( $dirPathname );
+
+		$linkDirPathname = sprintf( '%s/link-dir-%s', $pathname, microtime( true ) );
+		symlink( $dirPathname, $linkDirPathname );
+
+		$filePathname = sprintf( '%s/file-%s', $pathname, microtime( true ) );
+		touch( $filePathname );
+
+		$linkFilePathname = sprintf( '%s/link-file-%s', $pathname, microtime( true ) );
+		symlink( $filePathname, $linkFilePathname );
+
+		/* Symlink with missing target */
+		$missingFilePathname = sprintf( '%s/file-%s', $pathname, microtime( true ) );
+		touch( $missingFilePathname );
+
+		$linkMissingFilePathname = sprintf( '%s/link-file-%s', $pathname, microtime( true ) );
+		symlink( $missingFilePathname, $linkMissingFilePathname );
+
+		unlink( $missingFilePathname );
+
+		return [
+			[$dirPathname, Directory::Class],
+			[$filePathname, File::Class],
+			[$linkFilePathname, Link::Class],
+			[$linkDirPathname, Link::Class],
+			[$linkMissingFilePathname, Link::Class],
+		];
+	}
+
+	/**
+	 * @dataProvider	provider_getChild_returnsNodeObject_forExistingPathname
+	 */
+	public function test_getChild_returnsNodeObject_forExistingPathname( string $pathname, string $expectedClass )
+	{
+		$parentDirname = dirname( $pathname );
+		$childBasename = basename( $pathname );
+
+		$parentDirectory = new Directory( $parentDirname );
+		$childNode = $parentDirectory->getChild( $childBasename );
+
+		$this->assertEquals( $expectedClass, get_class( $childNode ) );
+	}
+
 	public function testGetChildWithExistingNodeIgnoresTypeParam()
 	{
-		$directory = new Directory( self::$tempPathname );
+		$directory = new Directory( self::getTempPathname() );
 
 		$childFileBasename = '/file-' . microtime( true );
-		$childFilePathname = self::$tempPathname . $childFileBasename;
+		$childFilePathname = self::getTempPathname() . $childFileBasename;
 		touch( $childFilePathname );
 
 		$childDirectoryBasename = '/dir-' . microtime( true );
-		$childDirectoryPathname = self::$tempPathname . $childDirectoryBasename;
+		$childDirectoryPathname = self::getTempPathname() . $childDirectoryBasename;
 		mkdir( $childDirectoryPathname );
 
 		$this->assertTrue( file_exists( $childFilePathname ) );
@@ -277,9 +323,9 @@ class DirectoryTest extends TestCase
 	 */
 	public function testGetChildWithNonExistentNodeWithoutTypeParamThrowsException()
 	{
-		$directory = new Directory( self::$tempPathname );
+		$directory = new Directory( self::getTempPathname() );
 		$childFilename = microtime( true );
-		$childPathname = self::$tempPathname . '/' . $childFilename;
+		$childPathname = self::getTempPathname() . '/' . $childFilename;
 
 		$this->assertFalse( file_exists( $childPathname ) );
 
@@ -288,7 +334,7 @@ class DirectoryTest extends TestCase
 
 	public function testGetChildrenDoesNotReturnDots()
 	{
-		$directory = new Directory( self::$tempPathname );
+		$directory = new Directory( self::getTempPathname() );
 		$children = $directory->getChildren();
 
 		foreach( $children as $node )
@@ -300,7 +346,7 @@ class DirectoryTest extends TestCase
 
 	public function testGetChildrenReturnsArray()
 	{
-		$directory = new Directory( self::$tempPathname );
+		$directory = new Directory( self::getTempPathname() );
 		$children = $directory->getChildren();
 
 		$this->assertTrue( is_array( $children ) );
@@ -309,7 +355,7 @@ class DirectoryTest extends TestCase
 	public function test_getChildren_returnsExpectedTypes()
 	{
 		/* Create parent directory on which to call getChildren */
-		$parentPathname = sprintf( '%s/%s', self::$tempPathname, microtime( true ) );
+		$parentPathname = sprintf( '%s/%s', self::getTempPathname(), microtime( true ) );
 		mkdir( $parentPathname );
 		$this->assertTrue( file_exists( $parentPathname ) );
 
@@ -399,7 +445,7 @@ class DirectoryTest extends TestCase
 
 	public function testGetChildrenReturnsArrayOfNodeObjects()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		$directory = new Directory( $testParentPathname );
@@ -425,7 +471,7 @@ class DirectoryTest extends TestCase
 
 	public function testGetChildrenWithFilter()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		$directory = new Directory( $testParentPathname );
@@ -454,7 +500,7 @@ class DirectoryTest extends TestCase
 
 	public function testGetChildrenByFileExtension()
 	{
-		$testParentPathname = self::$tempPathname . '/' . microtime( true );
+		$testParentPathname = self::getTempPathname() . '/' . microtime( true );
 		mkdir( $testParentPathname, 0777, true );
 
 		$directory = new Directory( $testParentPathname );
@@ -527,7 +573,7 @@ class DirectoryTest extends TestCase
 
 	public function testIsParentOfChildNodeReturnsTrue()
 	{
-		$parentDirectory = new Directory( self::$tempPathname );
+		$parentDirectory = new Directory( self::getTempPathname() );
 
 		$childNode = $parentDirectory
 			->getChild( microtime( true ), Node::DIRECTORY )
@@ -538,7 +584,7 @@ class DirectoryTest extends TestCase
 
 	public function testIsParentOfRootNodeReturnsFalse()
 	{
-		$directory = new Directory( self::$tempPathname );
+		$directory = new Directory( self::getTempPathname() );
 		$rootDirectory = new Directory( '/' );
 
 		$this->assertFalse( $directory->isParentOfNode( $rootDirectory ) );
@@ -546,7 +592,7 @@ class DirectoryTest extends TestCase
 
 	public function testIsParentOfUnrelatedNodeReturnsFalse()
 	{
-		$parentDirectory = new Directory( self::$tempPathname );
+		$parentDirectory = new Directory( self::getTempPathname() );
 
 		$nonChildNode = $parentDirectory
 			->getParent()
@@ -586,7 +632,7 @@ class DirectoryTest extends TestCase
 
 	public function testMoveDirectoryToNonExistentDirectoryWithWritableParent()
 	{
-		$sourcePathname = self::$tempPathname . '/source-' . microtime( true );
+		$sourcePathname = self::getTempPathname() . '/source-' . microtime( true );
 		$sourceDirectory = new Directory( $sourcePathname );
 		$sourceDirectory->create();
 		$this->assertTrue( $sourceDirectory->exists() );
@@ -610,7 +656,7 @@ class DirectoryTest extends TestCase
 	 */
 	public function testMoveToChildDirectoryThrowsException()
 	{
-		$parentPathname = self::$tempPathname . '/parent-' . microtime( true );
+		$parentPathname = self::getTempPathname() . '/parent-' . microtime( true );
 		$parentDirectory = new Directory( $parentPathname );
 		$childDirectory = $parentDirectory->getChild( 'child-' . microtime( true ), Node::DIRECTORY );
 
@@ -667,12 +713,14 @@ class DirectoryTest extends TestCase
 
 	public static function tearDownAfterClass()
 	{
-		if( file_exists( self::$tempPathname ) )
+		$tempPathname = self::getTempPathname();
+
+		if( file_exists( $tempPathname ) )
 		{
-			$command = sprintf( 'chmod -R 0755 %s', self::$tempPathname );
+			$command = sprintf( 'chmod -R 0755 %s', $tempPathname );
 			exec( $command );
 
-			$command = sprintf( 'rm -r %s', self::$tempPathname );
+			$command = sprintf( 'rm -r %s', $tempPathname );
 			exec( $command );
 		}
 	}
