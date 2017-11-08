@@ -54,7 +54,7 @@ class File extends Node
 			}
 			else
 			{
-				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Invalid permissions' );
+				$exceptionMessage = sprintf( self::ERROR_STRING_DELETE, $this->getPathname(), 'Permission denied' );
 				$exceptionCode = self::ERROR_CODE_PERMISSIONS;
 			}
 
