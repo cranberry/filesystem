@@ -114,10 +114,13 @@ class Directory extends Node
 	}
 
 	/**
+	 * Returns Node object representing child of current directory
+	 *
 	 * @param	string	$filename
+	 *
 	 * @return	Cranberry\Filesystem\Node
 	 */
-	public function getChild( $filename, $type=null )
+	public function getChild( $filename, $type=null ) : Node
 	{
 		$childPathname = $this->getPathname() . DIRECTORY_SEPARATOR . $filename;
 
