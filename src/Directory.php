@@ -16,15 +16,24 @@ class Directory extends Node
 	protected $directoryIterator;
 
 	/**
-	 * Attempt to create the directory specified by $this->pathname
+	 * Attempt to create the directory
 	 *
 	 * If $recursive is true, no exception will be thrown if the directory
-	 *   already exists (i.e., match the command-line behavior of
-	 *   `mkdir -p <dir>`)
+	 * already exists (i.e., match the command-line behavior of
+	 * `mkdir -p <dir>`)
 	 *
 	 * @param   boolean    $recursive
+	 *
 	 * @param   int        $mode
+	 *
 	 * @param   resource   $context
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If attempting to create existing directory non-recursively
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If parent directory is unwritable
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If parent directory does not exist and not creating recursively
+	 *
 	 * @return  boolean
 	 */
 	public function create( $recursive=false, $mode=0777, resource $context=null )
@@ -38,7 +47,7 @@ class Directory extends Node
 			else
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Directory exists' );
-				throw new \InvalidArgumentException( $exceptionMessage );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_NODEEXISTS );
 			}
 		}
 		else
@@ -50,7 +59,7 @@ class Directory extends Node
 				if( !$parentDirectory->isWritable() )
 				{
 					$exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Permission denied' );
-					throw new \InvalidArgumentException( $exceptionMessage );
+					throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 				}
 			}
 			else
@@ -58,7 +67,7 @@ class Directory extends Node
 				if( !$recursive )
 				{
 					$exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getBasename(), 'Permission denied' );
-					throw new \InvalidArgumentException( $exceptionMessage );
+					throw new Exception( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
 				}
 			}
 		}
@@ -174,6 +183,11 @@ class Directory extends Node
 	 * child file
 	 *
 	 * @param	callable    $filter
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If directory does not exist
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If directory is unreadable
+	 *
 	 * @return	array
 	 */
 	public function getChildren( callable $filter=null, array $filterArguments=[] )
@@ -181,13 +195,13 @@ class Directory extends Node
 		if( !$this->exists() )
 		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_GETCHILDREN, $this->getPathname(), 'No such directory'  );
-			throw new \InvalidArgumentException( $exceptionMessage );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 		}
 
 		if( !$this->isReadable() )
 		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_GETCHILDREN, $this->getPathname(), 'Permission denied'  );
-			throw new \InvalidArgumentException( $exceptionMessage );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 		}
 
 		$children = [];
@@ -306,9 +320,12 @@ class Directory extends Node
 
 	/**
 	 * Perform File-specific validation on move request before handing off to
-	 *   parent method
+	 * parent method
 	 *
 	 * @param   Cranberry\Filesystem\Directory  $targetDirectory
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target node is not an instance of Cranberry\Filesystem\Directory
+	 *
 	 * @return  boolean
 	 */
 	public function moveTo( Node $targetDirectory )
@@ -316,15 +333,15 @@ class Directory extends Node
 		/* As on the command line, a Directory object can only be moved to another Directory */
 		if( !($targetDirectory instanceof Directory) )
 		{
-			$exceptionMessage = sprintf( 'Cannot move %s: Invalid destination %s.', $this->getPathname(), $targetDirectory->getPathname() );
-			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
+			$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetDirectory->getPathname(), 'Invalid destination' );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
 		}
 
 		/* Prevent attempts to move a parent directory into one of its children */
 		if( $this->isParentOfNode( $targetDirectory ) )
 		{
 			$exceptionMessage = sprintf( 'Cannot move %s to child directory %s.', $this->getPathname(), $targetDirectory->getPathname() );
-			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
 		}
 
 		return parent::moveTo( $targetDirectory );

@@ -14,7 +14,9 @@ abstract class Node extends \SplFileInfo
 	const ERROR_CODE_PERMISSIONS = 1;
 	const ERROR_CODE_NOSUCHNODE = 2;
 	const ERROR_CODE_INVALIDTARGET = 4;
+	const ERROR_CODE_NODEEXISTS = 8;
 
+	const ERROR_STRING_CREATE = 'Cannot create %s: %s.';
 	const ERROR_STRING_CREATENODE = 'Cannot create node object for %s: %s.';
 	const ERROR_STRING_DELETE = 'Cannot delete %s: %s.';
 	const ERROR_STRING_MOVE = 'Cannot move %s: %s.';
@@ -133,10 +135,17 @@ abstract class Node extends \SplFileInfo
 	 * Attempt to move the file represented by self to $targetNode
 	 *
 	 * If $targetNode is a Directory object *and* $targetNode exists, the
-	 *   resulting Node will be a child of $targetNode (i.e., match the
-	 *   command-line behavior of `mv <source> <directory>`)
+	 * resulting Node will be a child of $targetNode (i.e., match the
+	 * command-line behavior of `mv <source> <directory>`)
 	 *
 	 * @param   Cranberry\Filesystem\Node   $targetNode
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If source node does not exist
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target node is not writable
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target parent does not exist
+	 *
 	 * @return  Node
 	 */
 	public function moveTo( Node $targetNode )
@@ -144,7 +153,7 @@ abstract class Node extends \SplFileInfo
 		if( !$this->exists() )
 		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_MOVE, $this->getPathname(), 'No such file or directory' );
-			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 		}
 
 		if( $targetNode->exists() )
@@ -152,7 +161,7 @@ abstract class Node extends \SplFileInfo
 			if( !$targetNode->isWritable() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'Permission denied' );
-				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 		else
@@ -162,13 +171,13 @@ abstract class Node extends \SplFileInfo
 			if( $targetNodeParent == false || !$targetNodeParent->exists() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'No such file or directory' );
-				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 			}
 
 			if( !$targetNodeParent->isWritable() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'Permission denied' );
-				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 

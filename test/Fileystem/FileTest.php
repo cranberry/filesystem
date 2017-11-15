@@ -34,9 +34,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
 	 */
-	public function testCreateChildOfNonExistentDirectoryThrowsException()
+	public function test_create_childOfNonExistentDirectory_nonRecursively_throwsException()
 	{
 		$filename = self::getTempPathname() . '/dir-' . microtime( true ) . '/foo.txt';
 
@@ -139,10 +140,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException  InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function testGetContentsOfNonExistentFileThrowsException()
+	public function test_getContents_ofNonExistentFile_throwsException()
 	{
 		$mockFile = $this
 			->getMockBuilder( File::class )
@@ -157,10 +158,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException  InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testGetContentsOfUnreadableFileThrowsException()
+	public function test_getContents_ofUnreadableFile_throwsException()
 	{
 		$mockFile = $this
 			->getMockBuilder( File::class )
@@ -207,10 +208,10 @@ class FileTest extends TestCase
 	/**
 	 * Note: This covers both existent and non-existent target Files
 	 *
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testMoveFileToFileWithUnwritableParentThrowsException()
+	public function test_moveTo_fileWithUnwritableParent_throwsException()
 	{
 		$sourceFileMock = $this
 			->getMockBuilder( File::class )
@@ -247,10 +248,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function testMoveFileToNonExistentDirectoryThrowsException()
+	public function test_moveTo_nonExistentDirectory_throwsException()
 	{
 		$sourceFileMock = $this
 			->getMockBuilder( File::class )
@@ -294,9 +295,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testPutContentsUsingUnwriteableFileThrowsException()
+	public function test_putContents_usingUnwriteableFile_throwsException()
 	{
 		$mockFile = $this
 			->getMockBuilder( File::class )
@@ -314,9 +316,10 @@ class FileTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testPutContentsWithUnwritableParentThrowsException()
+	public function test_putContents_usingUnwritableParent_throwsException()
 	{
 		$mockParent = $this
 			->getMockBuilder( Directory::class )

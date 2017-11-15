@@ -11,9 +11,16 @@ class File extends Node
 	const ERROR_STRING_PUTCONTENTS = 'Cannot write to file %s: %s.';
 
 	/**
+	 * Attempts to create file
+	 *
 	 * @param   boolean $recursive
+	 *
 	 * @param   int     $time
+	 *
 	 * @param   int     $atime
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If parent directory does not exist, and not creating recursively
+	 *
 	 * @return  boolean
 	 */
 	public function create( $recursive=false, $time=null, $atime=null )
@@ -22,12 +29,12 @@ class File extends Node
 		{
 			if( $recursive )
 			{
-				$this->getParent()->create();
+				$this->getParent()->create( true );
 			}
 			else
 			{
-				$exceptionMessage = sprintf( 'Cannot create file %s: Parent does not exist: %s', $this->getBasename(), $this->getParent()->getPathname() );
-				throw new \InvalidArgumentException( $exceptionMessage );
+				$exceptionMessage = sprintf( self::ERROR_STRING_CREATE, $this->getPathname(), 'Parent does not exist' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_INVALIDTARGET );
 			}
 		}
 
@@ -74,10 +81,20 @@ class File extends Node
 	}
 
 	/**
+	 * Returns contents of file
+	 *
 	 * @param   boolean    $use_include_path
+	 *
 	 * @param   resource   $context
+	 *
 	 * @param   int        $offset
+	 *
 	 * @param   int        $maxlen
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If file does not exist
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If file is not readable
+	 *
 	 * @return  string
 	 */
 	public function getContents( $use_include_path=false, resource $context=null, $offset=0, $maxlen=null )
@@ -85,13 +102,13 @@ class File extends Node
 		if( !$this->exists() )
 		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'No such file' );
-			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 		}
 
 		if( !$this->isReadable() )
 		{
 			$exceptionMessage = sprintf( self::ERROR_STRING_GETCONTENTS, $this->getPathname(), 'Permission denied' );
-			throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 		}
 
 		if( $maxlen == null )
@@ -107,10 +124,15 @@ class File extends Node
 	}
 
 	/**
-	 * Perform File-specific validation on move request before handing off to
+	 * Performs File-specific validation on move request before handing off to
 	 *   parent method
 	 *
 	 * @param   Cranberry\Filesystem\Node   $targetNode
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target parent isn't writable
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target directory doesn't exist
+	 *
 	 * @return  Node
 	 */
 	public function moveTo( Node $targetNode )
@@ -122,16 +144,16 @@ class File extends Node
 			/* Can't move to file if parent isn't writable */
 			if( !$targetParentNode->isWritable() )
 			{
-				$exceptionMessage = sprintf( 'Cannot move %s to %s: Permission denied.', $this->getPathname(), $targetParentNode->getPathname() );
-				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetParentNode->getPathname(), 'Permission denied' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 		if( $targetNode instanceof Directory )
 		{
 			if( !$targetNode->exists() )
 			{
-				$exceptionMessage = sprintf( 'Cannot move %s to %s: No such file or directory.', $this->getPathname(), $targetNode->getPathname() );
-				throw new \InvalidArgumentException( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+				$exceptionMessage = sprintf( self::ERROR_STRING_MOVETO, $this->getPathname(), $targetNode->getPathname(), 'No such file or directory' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
 			}
 		}
 
@@ -139,9 +161,18 @@ class File extends Node
 	}
 
 	/**
+	 * Writes a string to the file
+	 *
 	 * @param   mixed       $data
+	 *
 	 * @param   int         $flags
+	 *
 	 * @param   resource    $flags
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If file exists and is not writable
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If file does not exist and parent is not writable
+	 *
 	 * @return  int|false
 	 */
 	public function putContents( $data, $flags=0, resource $context=null )
@@ -151,7 +182,7 @@ class File extends Node
 			if( !$this->isWritable() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getPathname(), 'Permission denied' );
-				throw new \InvalidArgumentException( $exceptionMessage );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 		else
@@ -159,7 +190,7 @@ class File extends Node
 			if( !$this->getParent()->isWritable() )
 			{
 				$exceptionMessage = sprintf( self::ERROR_STRING_PUTCONTENTS, $this->getParent()->getPathname(), 'Permission denied' );
-				throw new \InvalidArgumentException( $exceptionMessage );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
 			}
 		}
 

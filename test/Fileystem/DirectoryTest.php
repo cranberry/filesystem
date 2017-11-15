@@ -43,9 +43,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NODEEXISTS
 	 */
-	public function testCreateExistingDirectoryNonRecursivelyThrowsException()
+	public function test_create_existingDirectoryNonRecursivelyThrowsException()
 	{
 		$pathname = self::getTempPathname() . '/' . microtime( true );
 
@@ -73,9 +74,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testCreateWithExistingUnwritableParentThrowsException()
+	public function test_create_withExistingUnwritableParent_throwsException()
 	{
 		$mockParent = $this
 			->getMockBuilder( Directory::class )
@@ -109,9 +111,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
 	 */
-	public function testCreateWithNonExistingParentUnrecursivelyThrowsException()
+	public function test_create_withNonExistingParent_nonRecursively_throwsException()
 	{
 		$mockParent = $this
 			->getMockBuilder( Directory::class )
@@ -223,9 +226,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testDeleteUnreadableDirectoryThrowsException()
+	public function test_delete_unreadableDirectory_throwsException()
 	{
 		$testPathname = self::getTempPathname() . '/noread-' . microtime( true );
 		mkdir( $testPathname, 0311, true );
@@ -404,7 +408,8 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode   Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
 	public function testGetChildrenOfNonExistentDirectoryThrowsException()
 	{
@@ -422,9 +427,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException   InvalidArgumentException
+	 * @expectedException   Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode   Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testGetChildrenOfUnreadableDirectoryThrowsException()
+	public function test_getChildren_ofUnreadableDirectory_throwsException()
 	{
 		$mockDirectory = $this
 			->getMockBuilder( Directory::class )
@@ -602,10 +608,10 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
 	 */
-	public function testMoveDirectoryToFileThrowsException()
+	public function test_moveTo_File_throwsException()
 	{
 		$sourceDirectoryMock = $this
 			->getMockBuilder( Directory::class )
@@ -651,8 +657,8 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_INVALIDTARGET
 	 */
 	public function testMoveToChildDirectoryThrowsException()
 	{
@@ -664,8 +670,8 @@ class DirectoryTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
 	public function testMoveDirectoryToNonExistentDirectoryWithUnwritableParentThrowsException()
 	{

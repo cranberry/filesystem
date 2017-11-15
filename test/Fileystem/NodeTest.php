@@ -189,10 +189,10 @@ class NodeTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testMoveNodeToExistingUnwritableNodeThrowsException()
+	public function test_moveTo_existingUnwritableNode_throwsException()
 	{
 		$sourceNodeMock = $this->getMockForAbstractClass
 		(
@@ -229,10 +229,10 @@ class NodeTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function testMoveNodeToNodeWithNonExistentParentThrowsException()
+	public function test_moveTo_nodeWithNonExistentParent_throwsException()
 	{
 		$sourceNodeMock = $this->getMockForAbstractClass
 		(
@@ -278,10 +278,62 @@ class NodeTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
 	 */
-	public function testMoveNodeToTheoreticalNonExistentRootThrowsException()
+	public function test_moveTo_nodeWithUnwritableParent_throwsException()
+	{
+		$sourceNodeMock = $this->getMockForAbstractClass
+		(
+			Node::class,
+			[],				// Constructor arguments
+			'',				// Mock class name
+			false,			// Call original constructor
+			true,			// Call original clone
+			true,			// Call autoload
+			['exists']		// Mocked methods
+		);
+		$sourceNodeMock
+			->method( 'exists' )
+			->willReturn( true );
+
+		$targetNodeParentMock = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['exists','isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetNodeParentMock
+			->method( 'exists' )
+			->willReturn( true );
+		$targetNodeParentMock
+			->method( 'isWritable' )
+			->willReturn( false );
+
+		$targetNodeMock = $this->getMockForAbstractClass
+		(
+			Node::class,
+			[],						// Constructor arguments
+			'',						// Mock class name
+			false,					// Call original constructor
+			true,					// Call original clone
+			true,					// Call autoload
+			['exists','getParent']	// Mocked methods
+		);
+		$targetNodeMock
+			->method( 'exists' )
+			->willReturn( false );
+		$targetNodeMock
+			->method( 'getParent' )
+			->willReturn( $targetNodeParentMock );
+
+		$sourceNodeMock->moveTo( $targetNodeMock );
+	}
+
+	/**
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 */
+	public function test_moveTo_theoreticalNonExistentRoot_throwsException()
 	{
 		$sourceNodeMock = $this->getMockForAbstractClass
 		(
@@ -334,10 +386,10 @@ class NodeTest extends TestCase
 	}
 
 	/**
-	 * @expectedException		InvalidArgumentException
-	 * @expectedExceptionCode	\Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 * @expectedException		Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
 	 */
-	public function testMoveNonExistentSourceNodeThrowsException()
+	public function test_moveTo_usingNonExistentSourceNode_throwsException()
 	{
 		$sourceNodeMock = $this->getMockForAbstractClass( Node::class, [], '', false, true, true, ['exists','getPathname'] );
 		$sourceNodeMock
