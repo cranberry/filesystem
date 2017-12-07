@@ -128,7 +128,13 @@ class File extends Node
 	 *
 	 * @param	Cranberry\Filesystem\File	$targetFile
 	 *
-	 * @throws	Cranberry\Filesystem\Exception	If source file does not exist
+	 * @throws	Cranberry\Filesystem\Exception	If source file does not exist or cannot be read
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target file does not exist and the parent directory has incorrect permissions
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target file exists but is not writable
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If target file is writable but the parent directory is not executable
 	 *
 	 * @return	void
 	 */
