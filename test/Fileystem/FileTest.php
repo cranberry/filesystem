@@ -20,6 +20,195 @@ class FileTest extends TestCase
 		return $tempPathname;
 	}
 
+	public function provider_isExecutableIsWritable(  ) : array
+	{
+		return [
+			[true, false],
+			[false, true],
+			[false, false],
+		];
+	}
+
+	/**
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_copyTo_targetWithUnexecutableParent_throwsException()
+	{
+		/* Source */
+		$sourceFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists', 'isReadable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$sourceFileMock
+			->method( 'exists' )
+			->willReturn( true );
+		$sourceFileMock
+			->method( 'isReadable' )
+			->willReturn( true );
+
+		/* Target */
+		$targetFileParentMock = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['isExecutable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetFileParentMock
+			->method( 'isExecutable' )
+			->willReturn( false );
+
+		$targetFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists','getParent','isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetFileMock
+			->method( 'exists' )
+			->willReturn( true );
+		$targetFileMock
+			->method( 'getParent' )
+			->willReturn( $targetFileParentMock );
+		$targetFileMock
+			->method( 'isWritable' )
+			->willReturn( true );
+
+		$sourceFileMock->copyTo( $targetFileMock );
+	}
+
+	/**
+	 * @dataProvider	provider_isExecutableIsWritable
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_copyTo_nonExistentTarget_withUnexecutableUnwritableParent_throwsException( bool $isExecutable, bool $isWritable )
+	{
+		/* Source */
+		$sourceFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists', 'isReadable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$sourceFileMock
+			->method( 'exists' )
+			->willReturn( true );
+		$sourceFileMock
+			->method( 'isReadable' )
+			->willReturn( true );
+
+		/* Target */
+		$targetFileParentMock = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['isExecutable', 'isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetFileParentMock
+			->method( 'isExecutable' )
+			->willReturn( $isExecutable );
+		$targetFileParentMock
+			->method( 'isWritable' )
+			->willReturn( $isWritable );
+
+		$targetFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists','getParent'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetFileMock
+			->method( 'exists' )
+			->willReturn( false );
+		$targetFileMock
+			->method( 'getParent' )
+			->willReturn( $targetFileParentMock );
+
+		$sourceFileMock->copyTo( $targetFileMock );
+	}
+
+	public function test_copyTo_nonExistentTarget_createsFile()
+	{
+		$sourceFilename = self::getTempPathname() . '/validSource-' . microtime( true );
+		$sourceFile = new File( $sourceFilename );
+		$sourceFileContents = 'contents-' . microtime( true );
+		$sourceFile->putContents( $sourceFileContents );
+
+		$targetFilename = self::getTempPathname() . '/nonExistentTarget-' . microtime( true );
+		$targetFile = new File( $targetFilename );
+
+		$this->assertFalse( $targetFile->exists() );
+
+		$sourceFile->copyTo( $targetFile );
+
+		$this->assertTrue( $targetFile->exists() );
+		$this->assertEquals( $sourceFileContents, $targetFile->getContents() );
+	}
+
+	/**
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_copyTo_unwritableTarget_throwsException()
+	{
+		/* Source */
+		$sourceFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists', 'isReadable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$sourceFileMock
+			->method( 'exists' )
+			->willReturn( true );
+		$sourceFileMock
+			->method( 'isReadable' )
+			->willReturn( true );
+
+		/* Target */
+		$targetFileMock = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['exists','isWritable'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$targetFileMock
+			->method( 'exists' )
+			->willReturn( true );
+		$targetFileMock
+			->method( 'isWritable' )
+			->willReturn( false );
+
+		$sourceFileMock->copyTo( $targetFileMock );
+	}
+
+	/**
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_NOSUCHNODE
+	 */
+	public function test_copyTo_withNonExistentSource_throwsException()
+	{
+		$sourceFile = new File( 'source-' . microtime( true ) );
+		$targetFile = new File( 'target-' . microtime( true ) );
+
+		$this->assertFalse( $sourceFile->exists() );
+
+		$sourceFile->copyTo( $targetFile );
+	}
+
+	/**
+	 * @expectedException  Cranberry\Filesystem\Exception
+	 * @expectedExceptionCode	Cranberry\Filesystem\Node::ERROR_CODE_PERMISSIONS
+	 */
+	public function test_copyTo_withUnreadableSource_throwsException()
+	{
+		$sourceFilename = self::getTempPathname() . '/unreadableSource-' . microtime( true );
+		touch( $sourceFilename );
+		chmod( $sourceFilename, 0300 );
+
+		$sourceFile = new File( $sourceFilename );
+		$targetFile = new File( 'target-' . microtime( true ) );
+
+		$this->assertFalse( $sourceFile->isReadable() );
+
+		$sourceFile->copyTo( $targetFile );
+	}
+
 	public function testCreateFile()
 	{
 		$filename = self::getTempPathname() . '/createFile-' . microtime( true );

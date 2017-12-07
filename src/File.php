@@ -124,6 +124,61 @@ class File extends Node
 	}
 
 	/**
+	 * Copies file
+	 *
+	 * @param	Cranberry\Filesystem\File	$targetFile
+	 *
+	 * @throws	Cranberry\Filesystem\Exception	If source file does not exist
+	 *
+	 * @return	void
+	 */
+	public function copyTo( File $targetFile )
+	{
+		if( !$this->exists() )
+		{
+			$exceptionMessage = sprintf( self::ERROR_STRING_NOSUCHNODE, 'file', $this->getPathname() );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_NOSUCHNODE );
+		}
+
+		if( !$this->isReadable() )
+		{
+			$exceptionMessage = sprintf( self::ERROR_STRING_COPY, $this->getPathname(), 'Permission denied' );
+			throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+		}
+
+		/* Copy would create a new file */
+		if( !$targetFile->exists() )
+		{
+			$targetFileParent = $targetFile->getParent();
+
+			if( !$targetFileParent->isExecutable() || !$targetFileParent->isWritable() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_COPYTO, $this->getPathname(), $targetFile->getPathname(), 'Permission denied' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+		}
+		/* Copy would overwrite an existing file */
+		else
+		{
+			if( !$targetFile->isWritable() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_COPYTO, $this->getPathname(), $targetFile->getPathname(), 'Permission denied' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+
+			$targetFileParent = $targetFile->getParent();
+
+			if( !$targetFileParent->isExecutable() )
+			{
+				$exceptionMessage = sprintf( self::ERROR_STRING_COPYTO, $this->getPathname(), $targetFile->getPathname(), 'Permission denied' );
+				throw new Exception( $exceptionMessage, self::ERROR_CODE_PERMISSIONS );
+			}
+		}
+
+		copy( $this->getPathname(), $targetFile->getPathname() );
+	}
+
+	/**
 	 * Performs File-specific validation on move request before handing off to
 	 *   parent method
 	 *

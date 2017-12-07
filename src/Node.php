@@ -16,11 +16,14 @@ abstract class Node extends \SplFileInfo
 	const ERROR_CODE_INVALIDTARGET = 4;
 	const ERROR_CODE_NODEEXISTS = 8;
 
+	const ERROR_STRING_COPY = 'Cannot copy %s: %s.';
+	const ERROR_STRING_COPYTO = 'Cannot copy %s to %s: %s.';
 	const ERROR_STRING_CREATE = 'Cannot create %s: %s.';
 	const ERROR_STRING_CREATENODE = 'Cannot create node object for %s: %s.';
 	const ERROR_STRING_DELETE = 'Cannot delete %s: %s.';
 	const ERROR_STRING_MOVE = 'Cannot move %s: %s.';
 	const ERROR_STRING_MOVETO = 'Cannot move %s to %s: %s.';
+	const ERROR_STRING_NOSUCHNODE = 'No such %s %s.';
 
 	/**
 	 * Expand leading ~ to $HOME if necessary, then hand off to SplFileInfo
