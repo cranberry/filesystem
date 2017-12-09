@@ -7,7 +7,6 @@ namespace Cranberry\Filesystem;
 
 class Directory extends Node
 {
-	const ERROR_STRING_CREATE = 'Cannot create %s: %s.';
 	const ERROR_STRING_GETCHILDREN = 'Cannot retrieve children of %s: %s.';
 
 	/**
