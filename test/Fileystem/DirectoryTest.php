@@ -272,7 +272,7 @@ class DirectoryTest extends TestCase
 		$missingFilePathname = sprintf( '%s/file-%s', $pathname, microtime( true ) );
 		touch( $missingFilePathname );
 
-		$linkMissingFilePathname = sprintf( '%s/link-file-%s', $pathname, microtime( true ) );
+		$linkMissingFilePathname = sprintf( '%s/link-file-missing-%s', $pathname, microtime( true ) );
 		symlink( $missingFilePathname, $linkMissingFilePathname );
 
 		unlink( $missingFilePathname );
