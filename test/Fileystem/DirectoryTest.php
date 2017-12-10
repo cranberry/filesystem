@@ -717,6 +717,96 @@ class DirectoryTest extends TestCase
 		$sourceDirectoryMock->moveTo( $targetDirectoryMock );
 	}
 
+	public function test_walkChildren_appliesFunctionRecursively()
+	{
+		/* Second-level children */
+		$childFileMock_level2 = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['isDir','getSize'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$childFileMock_level2
+			->method( 'isDir' )
+			->willReturn( false );
+		$childFileMock_level2
+			->method( 'getSize' )
+			->willReturn( 10 );
+		$childFileMock_level2
+			->expects( $this->once() )
+			->method( 'getSize' );
+
+		$childDirectoryMock_level2 = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['isDir','getSize','getChildren'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$childDirectoryMock_level2
+			->method( 'getChildren' )
+			->willReturn( [$childFileMock_level2] );
+		$childDirectoryMock_level2
+			->method( 'isDir' )
+			->willReturn( true );
+		$childDirectoryMock_level2
+			->method( 'getSize' )
+			->willReturn( 10 );
+		$childDirectoryMock_level2
+			->expects( $this->once() )
+			->method( 'getSize' );
+
+		/* First-level children */
+		$childFileMock_level1 = $this
+			->getMockBuilder( File::class )
+			->setMethods( ['isDir','getSize'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$childFileMock_level1
+			->method( 'isDir' )
+			->willReturn( false );
+		$childFileMock_level1
+			->method( 'getSize' )
+			->willReturn( 10 );
+		$childFileMock_level1
+			->expects( $this->once() )
+			->method( 'getSize' );
+
+		$childDirectoryMock_level1 = $this
+			->getMockBuilder( Directory::class )
+			->setMethods( ['isDir','getSize','getChildren'] )
+			->disableOriginalConstructor()
+			->getMock();
+		$childDirectoryMock_level1
+			->method( 'getChildren' )
+			->willReturn( [$childDirectoryMock_level2, $childFileMock_level1] );
+		$childDirectoryMock_level1
+			->method( 'isDir' )
+			->willReturn( true );
+		$childDirectoryMock_level1
+			->method( 'getSize' )
+			->willReturn( 10 );
+		$childDirectoryMock_level1
+			->expects( $this->once() )
+			->method( 'getSize' );
+
+		$parentDirectoryMock = $this
+			->getMockBuilder( Directory::class )
+			->disableOriginalConstructor( true )
+			->setMethods( ['getChildren'] )
+			->getMock();
+		$parentDirectoryMock
+			->method( 'getChildren' )
+			->willReturn( [$childDirectoryMock_level1] );
+		$parentDirectoryMock
+			->expects( $this->once() )
+			->method( 'getChildren' );
+
+		$callback = function( Node $node )
+		{
+			return $node->getSize();
+		};
+
+		$parentDirectoryMock->walkChildren( $callback );
+	}
+
 	public static function tearDownAfterClass()
 	{
 		$tempPathname = self::getTempPathname();

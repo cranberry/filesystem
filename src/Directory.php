@@ -345,4 +345,25 @@ class Directory extends Node
 
 		return parent::moveTo( $targetDirectory );
 	}
+
+	/**
+	 * Apply a user function recursively to every child node
+	 *
+	 * @param	callable	$callback
+	 *
+	 * @return	void
+	 */
+	public function walkChildren( callable $callback )
+	{
+		$childNodes = $this->getChildren();
+
+		foreach( $childNodes as $childNode )
+		{
+			call_user_func_array( $callback, [$childNode] );
+			if( $childNode->isDir() )
+			{
+				$childNode->walkChildren( $callback );
+			}
+		}
+	}
 }
